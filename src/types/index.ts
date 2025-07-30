@@ -334,16 +334,6 @@ export interface ChartData {
 
 export type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
-// Mock Data Configuration
-export interface MockDataConfig {
-  users: number;
-  sessions: number;
-  quizzes: number;
-  materials: number;
-  attendances: number;
-  feedbacks: number;
-}
-
 // Error Types
 export interface ValidationError {
   field: string;

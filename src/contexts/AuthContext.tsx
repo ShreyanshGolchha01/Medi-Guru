@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser, User, UserRole } from '../types';
-import { mockLogin } from '../data/mockData';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -49,7 +48,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password?: string, otp?: string) => {
     setIsLoading(true);
     try {
-      const authUser = await mockLogin(email, password, otp);
+      // TODO: Replace with actual API call
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, otp }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const authUser = await response.json();
       setUser(authUser);
       
       // Store auth data

@@ -19,14 +19,25 @@ const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   useEffect(() => {
-    // Mock admin stats
-    const mockStats: AdminStats = {
-      totalMeetings: 12,
-      totalAttendees: 45,
-      avgAttendance: 78
+    // TODO: Fetch admin stats from API
+    const fetchAdminStats = async () => {
+      try {
+        // const response = await fetch('/api/admin/stats');
+        // const stats = await response.json();
+        // setStats(stats);
+        
+        // For now, set empty stats
+        setStats({
+          totalMeetings: 0,
+          totalAttendees: 0,
+          avgAttendance: 0
+        });
+      } catch (error) {
+        console.error('Error fetching admin stats:', error);
+      }
     };
-    
-    setStats(mockStats);
+
+    fetchAdminStats();
   }, []);
 
   const getGreeting = () => {

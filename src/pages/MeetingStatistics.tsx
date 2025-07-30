@@ -54,103 +54,49 @@ const MeetingStatistics: React.FC = () => {
   const [activeView, setActiveView] = useState<StatisticsView>('overview');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock meetings data
-  const meetings: Meeting[] = [
-    {
-      id: '1',
-      title: 'Pediatric Emergency Care Workshop',
-      date: '2025-01-15',
-      time: '14:00',
-      duration: '2 hours',
-      location: 'Training Hall A, CMHO Office',
-      attendees: 28,
-      maxAttendees: 35,
-      status: 'completed',
-      category: 'Emergency Medicine',
-      instructor: 'Dr. Rajesh Kumar'
-    },
-    {
-      id: '2',
-      title: 'Advanced Cardiology Update',
-      date: '2025-01-18',
-      time: '10:00',
-      duration: '3 hours',
-      location: 'Conference Room B, Medical College',
-      attendees: 45,
-      maxAttendees: 50,
-      status: 'upcoming',
-      category: 'Cardiology',
-      instructor: 'Dr. Priya Sharma'
-    },
-    {
-      id: '3',
-      title: 'Mental Health Awareness Training',
-      date: '2025-01-12',
-      time: '09:00',
-      duration: '4 hours',
-      location: 'Auditorium, District Hospital',
-      attendees: 32,
-      maxAttendees: 40,
-      status: 'completed',
-      category: 'Mental Health',
-      instructor: 'Dr. Anjali Verma'
-    }
-  ];
+  // TODO: Fetch meetings data from API
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock pre-test data
+  // TODO: Implement API call to fetch meetings
+  // useEffect(() => {
+  //   const fetchMeetings = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const response = await fetch('/api/meetings/statistics');
+  //       const data = await response.json();
+  //       setMeetings(data);
+  //     } catch (error) {
+  //       console.error('Error fetching meetings:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchMeetings();
+  // }, []);
+
+  // TODO: Implement API call to fetch pre-test data
   const getPreTestData = (meetingId: string): ParticipantScore[] => {
-    const mockData: Record<string, ParticipantScore[]> = {
-      '1': [
-        { id: '1', name: 'Dr. Amit Sharma', department: 'Pediatrics', score: 18, totalQuestions: 20, timeTaken: '12 min', status: 'completed' },
-        { id: '2', name: 'Dr. Priya Patel', department: 'Emergency', score: 16, totalQuestions: 20, timeTaken: '15 min', status: 'completed' },
-        { id: '3', name: 'Dr. Rajesh Kumar', department: 'General Medicine', score: 19, totalQuestions: 20, timeTaken: '10 min', status: 'completed' },
-        { id: '4', name: 'Dr. Sunita Verma', department: 'Pediatrics', score: 14, totalQuestions: 20, timeTaken: '18 min', status: 'completed' },
-        { id: '5', name: 'Dr. Vikram Singh', department: 'Emergency', score: 0, totalQuestions: 20, timeTaken: '-', status: 'absent' }
-      ],
-      '3': [
-        { id: '1', name: 'Dr. Meera Joshi', department: 'Psychiatry', score: 17, totalQuestions: 20, timeTaken: '14 min', status: 'completed' },
-        { id: '2', name: 'Dr. Kiran Devi', department: 'General Medicine', score: 15, totalQuestions: 20, timeTaken: '16 min', status: 'completed' },
-        { id: '3', name: 'Dr. Arjun Patel', department: 'Neurology', score: 19, totalQuestions: 20, timeTaken: '11 min', status: 'completed' }
-      ]
-    };
-    return mockData[meetingId] || [];
+    // TODO: Replace with actual API call
+    // const response = await fetch(`/api/meetings/${meetingId}/pretest`);
+    // return await response.json();
+    return [];
   };
 
-  // Mock post-test data
+  // TODO: Implement API call to fetch post-test data
   const getPostTestData = (meetingId: string): ParticipantScore[] => {
-    const mockData: Record<string, ParticipantScore[]> = {
-      '1': [
-        { id: '1', name: 'Dr. Amit Sharma', department: 'Pediatrics', score: 19, totalQuestions: 20, timeTaken: '11 min', status: 'completed' },
-        { id: '2', name: 'Dr. Priya Patel', department: 'Emergency', score: 18, totalQuestions: 20, timeTaken: '13 min', status: 'completed' },
-        { id: '3', name: 'Dr. Rajesh Kumar', department: 'General Medicine', score: 20, totalQuestions: 20, timeTaken: '9 min', status: 'completed' },
-        { id: '4', name: 'Dr. Sunita Verma', department: 'Pediatrics', score: 17, totalQuestions: 20, timeTaken: '14 min', status: 'completed' }
-      ],
-      '3': [
-        { id: '1', name: 'Dr. Meera Joshi', department: 'Psychiatry', score: 18, totalQuestions: 20, timeTaken: '12 min', status: 'completed' },
-        { id: '2', name: 'Dr. Kiran Devi', department: 'General Medicine', score: 16, totalQuestions: 20, timeTaken: '15 min', status: 'completed' },
-        { id: '3', name: 'Dr. Arjun Patel', department: 'Neurology', score: 20, totalQuestions: 20, timeTaken: '10 min', status: 'completed' }
-      ]
-    };
-    return mockData[meetingId] || [];
+    // TODO: Replace with actual API call
+    // const response = await fetch(`/api/meetings/${meetingId}/posttest`);
+    // return await response.json();
+    return [];
   };
 
-  // Mock attendance data
+  // TODO: Implement API call to fetch attendance data
   const getAttendanceData = (meetingId: string): AttendanceRecord[] => {
-    const mockData: Record<string, AttendanceRecord[]> = {
-      '1': [
-        { id: '1', name: 'Dr. Amit Sharma', department: 'Pediatrics', loginTime: '14:00', logoutTime: '16:00', duration: '2h 0m', status: 'present' },
-        { id: '2', name: 'Dr. Priya Patel', department: 'Emergency', loginTime: '14:05', logoutTime: '16:00', duration: '1h 55m', status: 'late' },
-        { id: '3', name: 'Dr. Rajesh Kumar', department: 'General Medicine', loginTime: '13:58', logoutTime: '16:02', duration: '2h 4m', status: 'present' },
-        { id: '4', name: 'Dr. Sunita Verma', department: 'Pediatrics', loginTime: '14:00', logoutTime: '15:45', duration: '1h 45m', status: 'present' },
-        { id: '5', name: 'Dr. Vikram Singh', department: 'Emergency', loginTime: '-', logoutTime: '-', duration: '-', status: 'absent' }
-      ],
-      '3': [
-        { id: '1', name: 'Dr. Meera Joshi', department: 'Psychiatry', loginTime: '09:00', logoutTime: '13:00', duration: '4h 0m', status: 'present' },
-        { id: '2', name: 'Dr. Kiran Devi', department: 'General Medicine', loginTime: '09:10', logoutTime: '13:00', duration: '3h 50m', status: 'late' },
-        { id: '3', name: 'Dr. Arjun Patel', department: 'Neurology', loginTime: '08:55', logoutTime: '13:05', duration: '4h 10m', status: 'present' }
-      ]
-    };
-    return mockData[meetingId] || [];
+    // TODO: Replace with actual API call
+    // const response = await fetch(`/api/meetings/${meetingId}/attendance`);
+    // return await response.json();
+    return [];
   };
 
   const getScoreColor = (score: number, total: number) => {
@@ -543,110 +489,133 @@ const MeetingStatistics: React.FC = () => {
 
       {/* Meetings List */}
       <div style={{ display: 'grid', gap: 'var(--spacing-md)', gridTemplateColumns: '1fr' }}>
-        {meetings.map((meeting) => (
-          <div 
-            key={meeting.id}
-            className="card"
-            style={{
-              cursor: 'pointer',
-              transition: 'all var(--transition-normal)',
-              border: '1px solid var(--border-light)'
-            }}
-            onClick={() => setSelectedMeeting(meeting)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-            }}
-          >
-            <div className="row" style={{ alignItems: 'center' }}>
-              <div className="col-8">
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    background: 'var(--primary-gradient)',
-                    borderRadius: 'var(--radius-lg)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    flexShrink: 0
-                  }}>
-                    <BarChart3 size={30} />
-                  </div>
-                  <div>
-                    <h3 style={{
-                      fontSize: 'var(--font-lg)',
-                      fontWeight: '600',
-                      margin: '0 0 var(--spacing-xs) 0',
-                      color: 'var(--text-primary)'
-                    }}>
-                      {meeting.title}
-                    </h3>
+        {loading ? (
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-2xl)',
+            color: 'var(--text-secondary)'
+          }}>
+            <BarChart3 size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
+            <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Loading meetings...</h3>
+          </div>
+        ) : meetings.length > 0 ? (
+          meetings.map((meeting) => (
+            <div 
+              key={meeting.id}
+              className="card"
+              style={{
+                cursor: 'pointer',
+                transition: 'all var(--transition-normal)',
+                border: '1px solid var(--border-light)'
+              }}
+              onClick={() => setSelectedMeeting(meeting)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              }}
+            >
+              <div className="row" style={{ alignItems: 'center' }}>
+                <div className="col-8">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
                     <div style={{
+                      width: '60px',
+                      height: '60px',
+                      background: 'var(--primary-gradient)',
+                      borderRadius: 'var(--radius-lg)',
                       display: 'flex',
-                      gap: 'var(--spacing-lg)',
-                      marginBottom: 'var(--spacing-xs)',
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--text-secondary)'
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      flexShrink: 0
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Calendar size={18} />
-                        {new Date(meeting.date).toLocaleDateString('en-IN')}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Clock size={18} />
-                        {meeting.time}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Users size={20} />
-                        {meeting.attendees} participants
-                      </div>
+                      <BarChart3 size={30} />
                     </div>
-                    <p style={{
-                      color: 'var(--text-secondary)',
-                      margin: 0,
-                      fontSize: 'var(--font-sm)'
-                    }}>
-                      Topic: {meeting.category} | Instructor: {meeting.instructor}
-                    </p>
+                    <div>
+                      <h3 style={{
+                        fontSize: 'var(--font-lg)',
+                        fontWeight: '600',
+                        margin: '0 0 var(--spacing-xs) 0',
+                        color: 'var(--text-primary)'
+                      }}>
+                        {meeting.title}
+                      </h3>
+                      <div style={{
+                        display: 'flex',
+                        gap: 'var(--spacing-lg)',
+                        marginBottom: 'var(--spacing-xs)',
+                        fontSize: 'var(--font-sm)',
+                        color: 'var(--text-secondary)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                          <Calendar size={18} />
+                          {new Date(meeting.date).toLocaleDateString('en-IN')}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                          <Clock size={18} />
+                          {meeting.time}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                          <Users size={20} />
+                          {meeting.attendees} participants
+                        </div>
+                      </div>
+                      <p style={{
+                        color: 'var(--text-secondary)',
+                        margin: 0,
+                        fontSize: 'var(--font-sm)'
+                      }}>
+                        Topic: {meeting.category} | Instructor: {meeting.instructor}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="col-4" style={{ textAlign: 'right' }}>
-                <div style={{ marginBottom: 'var(--spacing-sm)' }}>
-                  <span style={{
-                    padding: '4px 12px',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--font-xs)',
-                    fontWeight: '600',
-                    backgroundColor: meeting.status === 'completed' ? 'var(--success-100)' : 'var(--primary-100)',
-                    color: meeting.status === 'completed' ? 'var(--success-600)' : 'var(--primary-600)',
-                    textTransform: 'capitalize'
-                  }}>
-                    {meeting.status}
-                  </span>
+                <div className="col-4" style={{ textAlign: 'right' }}>
+                  <div style={{ marginBottom: 'var(--spacing-sm)' }}>
+                    <span style={{
+                      padding: '4px 12px',
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: 'var(--font-xs)',
+                      fontWeight: '600',
+                      backgroundColor: meeting.status === 'completed' ? 'var(--success-100)' : 'var(--primary-100)',
+                      color: meeting.status === 'completed' ? 'var(--success-600)' : 'var(--primary-600)',
+                      textTransform: 'capitalize'
+                    }}>
+                      {meeting.status}
+                    </span>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--spacing-xs)',
+                      marginLeft: 'auto'
+                    }}
+                  >
+                    <Eye size={16} />
+                    View Statistics
+                  </button>
                 </div>
-                <button
-                  className="btn btn-primary"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--spacing-xs)',
-                    marginLeft: 'auto'
-                  }}
-                >
-                  <Eye size={16} />
-                  View Statistics
-                </button>
               </div>
             </div>
+          ))
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-2xl)',
+            color: 'var(--text-secondary)'
+          }}>
+            <BarChart3 size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
+            <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>No meetings available</h3>
+            <p style={{ margin: 0 }}>
+              No training meetings found. Check back later for new sessions.
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

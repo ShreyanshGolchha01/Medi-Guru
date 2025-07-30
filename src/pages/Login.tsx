@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, Shield, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import type { LoginForm } from '../types';
+import serverUrl from '../services/server';
 
 const Login: React.FC = () => {
   const { login, isAuthenticated, isLoading } = useAuth();

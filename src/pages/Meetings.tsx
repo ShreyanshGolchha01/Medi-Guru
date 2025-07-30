@@ -50,77 +50,15 @@ const Meetings: React.FC = () => {
   const [uploadType, setUploadType] = useState<'pretest' | 'attendance' | 'posttest' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
+  
+  // TODO: Replace with API calls
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock meetings data
-  const meetings: Meeting[] = [
-    {
-      id: '1',
-      title: 'Pediatric Emergency Care Workshop',
-      date: '2025-01-15',
-      time: '14:00',
-      duration: '2 hours',
-      location: 'Training Hall A, CMHO Office',
-      attendees: 28,
-      maxAttendees: 35,
-      description: 'Comprehensive training on handling pediatric emergencies, including CPR techniques, medication protocols, and emergency procedures specific to children.',
-      status: 'upcoming',
-      category: 'Emergency Medicine',
-      instructor: 'Dr. Rajesh Kumar'
-    },
-    {
-      id: '2',
-      title: 'Advanced Cardiology Update',
-      date: '2025-01-18',
-      time: '10:00',
-      duration: '3 hours',
-      location: 'Conference Room B, Medical College',
-      attendees: 45,
-      maxAttendees: 50,
-      description: 'Latest developments in cardiology, new treatment protocols, and case studies from recent research.',
-      status: 'upcoming',
-      category: 'Cardiology',
-      instructor: 'Dr. Priya Sharma'
-    },
-    {
-      id: '3',
-      title: 'Mental Health Awareness Training',
-      date: '2025-01-12',
-      time: '09:00',
-      duration: '4 hours',
-      location: 'Auditorium, District Hospital',
-      attendees: 32,
-      maxAttendees: 40,
-      description: 'Training on identifying and addressing mental health issues in primary care settings.',
-      status: 'completed',
-      category: 'Mental Health',
-      instructor: 'Dr. Anjali Verma'
-    },
-    {
-      id: '4',
-      title: 'COVID-19 Protocol Updates',
-      date: '2025-01-20',
-      time: '15:30',
-      duration: '1.5 hours',
-      location: 'Online Session',
-      attendees: 65,
-      maxAttendees: 100,
-      description: 'Updated guidelines and protocols for COVID-19 management and prevention.',
-      status: 'upcoming',
-      category: 'Infectious Diseases',
-      instructor: 'Dr. Suresh Patel'
-    }
-  ];
-
-  // Mock upload status for each meeting
-  // Only Attendance is mandatory, Pre-test and Post-test are completely optional
+  // TODO: Replace with actual API call to get upload status
   const getUploadStatus = (meetingId: string): UploadStatus => {
-    const statuses: Record<string, UploadStatus> = {
-      '1': { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' },
-      '2': { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' },
-      '3': { preTest: 'not-required', attendance: 'uploaded', postTest: 'not-required' },
-      '4': { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' }
-    };
-    return statuses[meetingId] || { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' };
+    // This will be replaced with API call
+    return { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' };
   };
 
   const getStatusColor = (status: string) => {
@@ -148,17 +86,30 @@ const Meetings: React.FC = () => {
     setUploadType(type);
     setUploading(true);
     
-    // Simulate file upload
-    setTimeout(() => {
+    try {
+      // TODO: Replace with actual API call
+      // const formData = new FormData();
+      // formData.append('file', file);
+      // formData.append('meetingId', selectedMeeting.id);
+      // formData.append('type', type);
+      // const response = await fetch('/api/upload', { method: 'POST', body: formData });
+      
+      // Simulate upload for now
+      setTimeout(() => {
+        setUploading(false);
+        // Clear only the specific file after upload
+        setUploadFiles(prev => ({
+          ...prev,
+          [type]: null
+        }));
+        setUploadType(null);
+        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} file uploaded successfully!`);
+      }, 2000);
+    } catch (error) {
       setUploading(false);
-      // Clear only the specific file after upload
-      setUploadFiles(prev => ({
-        ...prev,
-        [type]: null
-      }));
       setUploadType(null);
-      alert(`${type.charAt(0).toUpperCase() + type.slice(1)} file uploaded successfully!`);
-    }, 2000);
+      alert('Upload failed. Please try again.');
+    }
   };
 
   const getUploadStatusIcon = (status: 'pending' | 'uploaded' | 'not-required') => {
@@ -801,145 +752,153 @@ const Meetings: React.FC = () => {
         flexDirection: 'column',
         gap: 'var(--spacing-sm)'
       }}>
-        {getFilteredAndSortedMeetings().map((meeting) => (
-          <div 
-            key={meeting.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: 'var(--spacing-md)',
-              background: 'var(--bg-white)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-light)',
-              cursor: 'pointer',
-              transition: 'all var(--transition-normal)',
-              boxShadow: 'var(--shadow-sm)'
-            }}
-            onClick={() => setSelectedMeeting(meeting)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-            }}
-          >
-            {/* Icon */}
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'var(--primary-gradient)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              flexShrink: 0,
-              marginRight: 'var(--spacing-md)'
-            }}>
-              <Calendar size={25} />
-            </div>
-
-            {/* Content */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
+        {loading ? (
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-2xl)',
+            color: 'var(--text-secondary)'
+          }}>
+            <Calendar size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
+            <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Loading meetings...</h3>
+          </div>
+        ) : getFilteredAndSortedMeetings().length > 0 ? (
+          getFilteredAndSortedMeetings().map((meeting) => (
+            <div 
+              key={meeting.id}
+              style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 'var(--spacing-xs)',
-                flexWrap: 'wrap',
-                gap: 'var(--spacing-sm)'
+                padding: 'var(--spacing-md)',
+                background: 'var(--bg-white)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-light)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-normal)',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+              onClick={() => setSelectedMeeting(meeting)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+              }}
+            >
+              {/* Icon */}
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: 'var(--primary-gradient)',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                flexShrink: 0,
+                marginRight: 'var(--spacing-md)'
               }}>
-                <h3 style={{
-                  fontSize: 'var(--font-base)',
-                  fontWeight: '600',
-                  margin: 0,
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.3,
-                  flex: '1 1 auto',
-                  minWidth: '200px'
-                }}>
-                  {meeting.title}
-                </h3>
-                <span style={{
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: 'var(--font-xs)',
-                  fontWeight: '600',
-                  backgroundColor: getStatusBg(meeting.status),
-                  color: getStatusColor(meeting.status),
-                  textTransform: 'capitalize',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0
-                }}>
-                  {meeting.status}
-                </span>
+                <Calendar size={25} />
               </div>
 
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                fontSize: 'var(--font-sm)',
-                color: 'var(--text-secondary)',
-                flexWrap: 'wrap',
-                gap: 'var(--spacing-sm)'
-              }}>
+              {/* Content */}
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: 'var(--spacing-lg)',
-                  flexWrap: 'wrap'
+                  marginBottom: 'var(--spacing-xs)',
+                  flexWrap: 'wrap',
+                  gap: 'var(--spacing-sm)'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                    <Calendar size={16} />
-                    {new Date(meeting.date).toLocaleDateString('en-IN')}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                    <Clock size={16} />
-                    {meeting.time}
-                  </div>
-                  <div style={{ fontWeight: '500', color: 'var(--primary-600)' }}>
-                    {meeting.category}
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)' }}>
-                    {meeting.instructor}
-                  </div>
-                </div>
-                <ChevronRight 
-                  size={16} 
-                  style={{ 
-                    color: 'var(--primary-600)',
-                    transition: 'transform var(--transition-fast)',
+                  <h3 style={{
+                    fontSize: 'var(--font-base)',
+                    fontWeight: '600',
+                    margin: 0,
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.3,
+                    flex: '1 1 auto',
+                    minWidth: '200px'
+                  }}>
+                    {meeting.title}
+                  </h3>
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: 'var(--font-xs)',
+                    fontWeight: '600',
+                    backgroundColor: getStatusBg(meeting.status),
+                    color: getStatusColor(meeting.status),
+                    textTransform: 'capitalize',
+                    whiteSpace: 'nowrap',
                     flexShrink: 0
-                  }} 
-                />
+                  }}>
+                    {meeting.status}
+                  </span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 'var(--font-sm)',
+                  color: 'var(--text-secondary)',
+                  flexWrap: 'wrap',
+                  gap: 'var(--spacing-sm)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-lg)',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                      <Calendar size={16} />
+                      {new Date(meeting.date).toLocaleDateString('en-IN')}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                      <Clock size={16} />
+                      {meeting.time}
+                    </div>
+                    <div style={{ fontWeight: '500', color: 'var(--primary-600)' }}>
+                      {meeting.category}
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)' }}>
+                      {meeting.instructor}
+                    </div>
+                  </div>
+                  <ChevronRight 
+                    size={16} 
+                    style={{ 
+                      color: 'var(--primary-600)',
+                      transition: 'transform var(--transition-fast)',
+                      flexShrink: 0
+                    }} 
+                  />
+                </div>
               </div>
             </div>
+          ))
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-2xl)',
+            color: 'var(--text-secondary)'
+          }}>
+            <Calendar size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
+            <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>
+              {statusFilter === 'all' ? 'No meetings scheduled' : `No ${statusFilter} meetings`}
+            </h3>
+            <p style={{ margin: 0 }}>
+              {statusFilter === 'all' 
+                ? 'Check back later for new training sessions.' 
+                : 'Try selecting a different filter or check back later.'
+              }
+            </p>
           </div>
-        ))}
+        )}
       </div>
-
-      {/* No meetings message */}
-      {getFilteredAndSortedMeetings().length === 0 && (
-        <div style={{
-          textAlign: 'center',
-          padding: 'var(--spacing-2xl)',
-          color: 'var(--text-secondary)'
-        }}>
-          <Calendar size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
-          <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>
-            {statusFilter === 'all' ? 'No meetings scheduled' : `No ${statusFilter} meetings`}
-          </h3>
-          <p style={{ margin: 0 }}>
-            {statusFilter === 'all' 
-              ? 'Check back later for new training sessions.' 
-              : 'Try selecting a different filter or check back later.'
-            }
-          </p>
-        </div>
-      )}
     </div>
   );
 };

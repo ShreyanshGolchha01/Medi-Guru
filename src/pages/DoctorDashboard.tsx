@@ -24,15 +24,26 @@ const DoctorDashboard: React.FC = () => {
   const [stats, setStats] = useState<DoctorStats | null>(null);
 
   useEffect(() => {
-    // Mock doctor stats
-    const mockStats: DoctorStats = {
-      upcomingSessions: 3,
-      completedSessions: 15,
-      averageScore: 87.5,
-      certificatesEarned: 8
+    // TODO: Fetch doctor stats from API
+    const fetchDoctorStats = async () => {
+      try {
+        // const response = await fetch('/api/doctor/stats');
+        // const stats = await response.json();
+        // setStats(stats);
+        
+        // For now, set empty stats
+        setStats({
+          upcomingSessions: 0,
+          completedSessions: 0,
+          averageScore: 0,
+          certificatesEarned: 0
+        });
+      } catch (error) {
+        console.error('Error fetching doctor stats:', error);
+      }
     };
-    
-    setStats(mockStats);
+
+    fetchDoctorStats();
   }, []);
 
   const getGreeting = () => {
