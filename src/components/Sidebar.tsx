@@ -13,7 +13,8 @@ import {
   Settings,
   HelpCircle,
   Play,
-  Download
+  Download,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import type { SidebarItem } from '../types';
@@ -24,7 +25,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const sidebarItems: SidebarItem[] = user?.role === 'admin' ? [
     // Admin Navigation
@@ -57,14 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       roles: ['admin']
     }
   ] : [
-    // Doctor Navigation - Simplified to 2 main options
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: 'Home',
-      path: '/dashboard',
-      roles: ['doctor']
-    },
+    // Doctor Navigation - Only Meetings
     {
       id: 'meetings',
       label: 'Meetings',
@@ -146,7 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             alignItems: 'center',
             gap: 'var(--spacing-sm)'
           }}>
-            {user?.profileImage ? (
+            {/* {user?.profileImage ? (
               <img
                 src={user.profileImage}
                 alt={user.name}
@@ -162,18 +156,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div style={{
                 width: '48px',
                 height: '48px',
-                background: 'var(--primary-gradient)',
+                background: 'var(--text-white)',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--text-white)',
-                fontSize: 'var(--font-lg)',
-                fontWeight: 'bold'
+                border: '2px solid var(--border-medium)',
+                padding: '4px'
               }}>
-                {user?.name?.charAt(0) || 'U'}
+                <img
+                  src="/src/assets/medigurulogo.png"
+                  alt="Medi Guru Logo"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
               </div>
-            )}
+            )} */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 fontSize: 'var(--font-base)',
@@ -285,41 +286,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </ul>
         </nav>
 
-        {/* Quick Stats */}
+        {/* Logout Section */}
         <div style={{
-          margin: 'var(--spacing-lg) var(--spacing-md)',
           padding: 'var(--spacing-md)',
-          background: 'var(--bg-light)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-light)'
+          borderTop: '1px solid var(--border-light)'
         }}>
-          <h4 style={{
-            margin: '0 0 var(--spacing-sm) 0',
-            fontSize: 'var(--font-sm)',
-            fontWeight: '600',
-            color: 'var(--text-primary)'
-          }}>
-            Quick Stats
-          </h4>
-          <div style={{
-            display: 'grid',
-            gap: 'var(--spacing-xs)',
-            fontSize: 'var(--font-xs)',
-            color: 'var(--text-secondary)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Sessions Attended:</span>
-              <strong style={{ color: 'var(--primary-dark)' }}>12</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Certificates Earned:</span>
-              <strong style={{ color: 'var(--accent-color)' }}>8</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Average Score:</span>
-              <strong style={{ color: 'var(--accent-color)' }}>85%</strong>
-            </div>
-          </div>
+          <button
+            onClick={() => {
+              logout();
+              onClose();
+            }}
+            style={{
+              width: '100%',
+              background: 'transparent',
+              border: '1px solid var(--border-medium)',
+              color: '#dc3545',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 'var(--spacing-sm)',
+              padding: 'var(--spacing-sm) var(--spacing-md)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--font-sm)',
+              fontWeight: '500',
+              transition: 'all var(--transition-fast)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+              e.currentTarget.style.borderColor = '#dc3545';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.borderColor = 'var(--border-medium)';
+            }}
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
         </div>
 
         {/* Footer */}
@@ -336,8 +340,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             lineHeight: 1.4
           }}>
             Medi Guru Portal v1.0<br />
-            CMHO Office, Raipur<br />
-            Health & Family Welfare Dept., CG
+            SSIPMT, Raipur<br />
           </p>
         </div>
       </aside>

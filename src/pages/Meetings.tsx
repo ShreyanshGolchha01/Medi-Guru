@@ -3,8 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   Calendar,
   Clock,
-  Users,
-  MapPin,
   Upload,
   FileText,
   UserCheck,
@@ -40,9 +38,18 @@ interface UploadStatus {
 const Meetings: React.FC = () => {
   const { user } = useAuth();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<{
+    pretest: File | null;
+    attendance: File | null;
+    posttest: File | null;
+  }>({
+    pretest: null,
+    attendance: null,
+    posttest: null
+  });
   const [uploadType, setUploadType] = useState<'pretest' | 'attendance' | 'posttest' | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
 
   // Mock meetings data
   const meetings: Meeting[] = [
@@ -105,14 +112,15 @@ const Meetings: React.FC = () => {
   ];
 
   // Mock upload status for each meeting
+  // Only Attendance is mandatory, Pre-test and Post-test are completely optional
   const getUploadStatus = (meetingId: string): UploadStatus => {
     const statuses: Record<string, UploadStatus> = {
-      '1': { preTest: 'pending', attendance: 'pending', postTest: 'pending' },
-      '2': { preTest: 'uploaded', attendance: 'pending', postTest: 'pending' },
-      '3': { preTest: 'uploaded', attendance: 'uploaded', postTest: 'uploaded' },
+      '1': { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' },
+      '2': { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' },
+      '3': { preTest: 'not-required', attendance: 'uploaded', postTest: 'not-required' },
       '4': { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' }
     };
-    return statuses[meetingId] || { preTest: 'pending', attendance: 'pending', postTest: 'pending' };
+    return statuses[meetingId] || { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' };
   };
 
   const getStatusColor = (status: string) => {
@@ -134,7 +142,8 @@ const Meetings: React.FC = () => {
   };
 
   const handleFileUpload = async (type: 'pretest' | 'attendance' | 'posttest') => {
-    if (!uploadFile || !selectedMeeting) return;
+    const file = uploadFiles[type];
+    if (!file || !selectedMeeting) return;
     
     setUploadType(type);
     setUploading(true);
@@ -142,7 +151,11 @@ const Meetings: React.FC = () => {
     // Simulate file upload
     setTimeout(() => {
       setUploading(false);
-      setUploadFile(null);
+      // Clear only the specific file after upload
+      setUploadFiles(prev => ({
+        ...prev,
+        [type]: null
+      }));
       setUploadType(null);
       alert(`${type.charAt(0).toUpperCase() + type.slice(1)} file uploaded successfully!`);
     }, 2000);
@@ -162,6 +175,31 @@ const Meetings: React.FC = () => {
       case 'pending': return 'Pending';
       case 'not-required': return 'Not Required';
     }
+  };
+
+  // Filter and sort meetings
+  const getFilteredAndSortedMeetings = () => {
+    let filtered = meetings;
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = meetings.filter(meeting => meeting.status === statusFilter);
+    }
+    
+    // Sort by status priority: upcoming -> ongoing -> completed
+    const statusPriority = { 'upcoming': 1, 'ongoing': 2, 'completed': 3 };
+    
+    return filtered.sort((a, b) => {
+      const priorityA = statusPriority[a.status] || 4;
+      const priorityB = statusPriority[b.status] || 4;
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same status, sort by date
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
   };
 
   if (selectedMeeting) {
@@ -217,64 +255,67 @@ const Meetings: React.FC = () => {
               opacity: 0.9
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <Calendar size={16} />
+                <Calendar size={20} />
                 {new Date(selectedMeeting.date).toLocaleDateString('en-IN')}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <Clock size={16} />
+                <Clock size={20} />
                 {selectedMeeting.time} ({selectedMeeting.duration})
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <MapPin size={16} />
-                {selectedMeeting.location}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <Users size={16} />
-                {selectedMeeting.attendees}/{selectedMeeting.maxAttendees} attendees
               </div>
             </div>
           </div>
 
           <div style={{ padding: '0 var(--spacing-xl) var(--spacing-xl)' }}>
             <div className="row" style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <div className="col-8">
-                <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
-                  Description
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                  {selectedMeeting.description}
-                </p>
-              </div>
-              <div className="col-4">
+              <div className="col-12">
                 <div style={{
-                  background: 'var(--background-soft)',
-                  padding: 'var(--spacing-md)',
+                  background: 'var(--bg-light)',
+                  padding: 'var(--spacing-lg)',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-light)'
                 }}>
-                  <h4 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-base)' }}>
-                    Meeting Info
-                  </h4>
-                  <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-                    <div style={{ marginBottom: 'var(--spacing-xs)' }}>
-                      <strong>Category:</strong> {selectedMeeting.category}
-                    </div>
-                    <div style={{ marginBottom: 'var(--spacing-xs)' }}>
-                      <strong>Instructor:</strong> {selectedMeeting.instructor}
+                  <h3 style={{ margin: '0 0 var(--spacing-md) 0', fontSize: 'var(--font-lg)' }}>
+                    Meeting Information
+                  </h3>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: 'var(--spacing-md)',
+                    fontSize: 'var(--font-sm)'
+                  }}>
+                    <div>
+                      <strong style={{ color: 'var(--text-primary)' }}>Meeting Topic:</strong>
+                      <div style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        {selectedMeeting.category}
+                      </div>
                     </div>
                     <div>
-                      <strong>Status:</strong> 
-                      <span style={{
-                        marginLeft: 'var(--spacing-xs)',
-                        padding: '2px 8px',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: 'var(--font-xs)',
-                        backgroundColor: getStatusBg(selectedMeeting.status),
-                        color: getStatusColor(selectedMeeting.status),
-                        textTransform: 'capitalize'
-                      }}>
-                        {selectedMeeting.status}
-                      </span>
+                      <strong style={{ color: 'var(--text-primary)' }}>Instructor:</strong>
+                      <div style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        {selectedMeeting.instructor}
+                      </div>
+                    </div>
+                    <div>
+                      <strong style={{ color: 'var(--text-primary)' }}>Status:</strong>
+                      <div style={{ marginTop: '4px' }}>
+                        <span style={{
+                          padding: '4px 12px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: 'var(--font-xs)',
+                          fontWeight: '600',
+                          backgroundColor: getStatusBg(selectedMeeting.status),
+                          color: getStatusColor(selectedMeeting.status),
+                          textTransform: 'capitalize'
+                        }}>
+                          {selectedMeeting.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <strong style={{ color: 'var(--text-primary)' }}>Duration:</strong>
+                      <div style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        {selectedMeeting.duration}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -294,7 +335,7 @@ const Meetings: React.FC = () => {
             alignItems: 'center',
             gap: 'var(--spacing-sm)'
           }}>
-            <Upload size={20} />
+            <Upload size={24} />
             Upload Files
           </h2>
 
@@ -319,7 +360,7 @@ const Meetings: React.FC = () => {
                   margin: '0 auto var(--spacing-md) auto',
                   color: 'white'
                 }}>
-                  <FileText size={24} />
+                  <FileText size={30} />
                 </div>
                 <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
                   Pre-test Data
@@ -332,35 +373,77 @@ const Meetings: React.FC = () => {
                   marginBottom: 'var(--spacing-md)',
                   fontSize: 'var(--font-sm)'
                 }}>
-                  {getUploadStatusIcon(uploadStatus.preTest)}
-                  <span style={{
-                    color: uploadStatus.preTest === 'uploaded' ? 'var(--success-600)' :
-                           uploadStatus.preTest === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)'
-                  }}>
-                    {getUploadStatusText(uploadStatus.preTest)}
+                  {getUploadStatusIcon('not-required')}
+                  <span style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>
+                    Optional - Upload if Available
                   </span>
                 </div>
-                {uploadStatus.preTest !== 'not-required' && (
-                  <>
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                      style={{ marginBottom: 'var(--spacing-md)', width: '100%' }}
-                    />
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleFileUpload('pretest')}
-                      disabled={!uploadFile || uploading}
-                      style={{
-                        width: '100%',
-                        opacity: (!uploadFile || uploading) ? 0.6 : 1
-                      }}
-                    >
-                      {uploading && uploadType === 'pretest' ? 'Uploading...' : 'Upload Pre-test'}
-                    </button>
-                  </>
-                )}
+                
+                {/* Optional upload section - always available */}
+                <div style={{
+                  position: 'relative',
+                  marginBottom: 'var(--spacing-md)',
+                  overflow: 'hidden'
+                }}>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={(e) => setUploadFiles(prev => ({
+                      ...prev,
+                      pretest: e.target.files?.[0] || null
+                    }))}
+                    style={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      opacity: 0
+                    }}
+                    id="pretest-file-input"
+                  />
+                  <label
+                    htmlFor="pretest-file-input"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 'var(--spacing-xs)',
+                      width: '100%',
+                      padding: 'var(--spacing-sm) var(--spacing-md)',
+                      background: 'var(--bg-white)',
+                      border: '2px dashed var(--border-medium)',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                      fontSize: 'var(--font-sm)',
+                      color: 'var(--text-secondary)',
+                      textAlign: 'center',
+                      minHeight: '50px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                      e.currentTarget.style.color = 'var(--primary-dark)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-medium)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
+                  >
+                    <Upload size={16} />
+                    {uploadFiles.pretest?.name || 'Choose Excel/CSV File (Optional)'}
+                  </label>
+                </div>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleFileUpload('pretest')}
+                  disabled={!uploadFiles.pretest || uploading}
+                  style={{
+                    width: '100%',
+                    opacity: (!uploadFiles.pretest || uploading) ? 0.6 : 1
+                  }}
+                >
+                  {uploading && uploadType === 'pretest' ? 'Uploading...' : 'Upload Pre-test (Optional)'}
+                </button>
               </div>
             </div>
 
@@ -384,7 +467,7 @@ const Meetings: React.FC = () => {
                   margin: '0 auto var(--spacing-md) auto',
                   color: 'white'
                 }}>
-                  <UserCheck size={24} />
+                  <UserCheck size={30} />
                 </div>
                 <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
                   Attendance Data
@@ -400,29 +483,80 @@ const Meetings: React.FC = () => {
                   {getUploadStatusIcon(uploadStatus.attendance)}
                   <span style={{
                     color: uploadStatus.attendance === 'uploaded' ? 'var(--success-600)' :
-                           uploadStatus.attendance === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)'
+                           uploadStatus.attendance === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)',
+                    fontWeight: '700',
+                    fontSize: 'var(--font-sm)'
                   }}>
+                    {uploadStatus.attendance === 'pending' && ' MANDATORY - '}
                     {getUploadStatusText(uploadStatus.attendance)}
+                    {uploadStatus.attendance === 'pending' && ' - REQUIRED'}
                   </span>
                 </div>
                 {uploadStatus.attendance !== 'not-required' && (
                   <>
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                      style={{ marginBottom: 'var(--spacing-md)', width: '100%' }}
-                    />
+                    <div style={{
+                      position: 'relative',
+                      marginBottom: 'var(--spacing-md)',
+                      overflow: 'hidden'
+                    }}>
+                      <input
+                        type="file"
+                        accept=".xlsx,.xls,.csv"
+                        onChange={(e) => setUploadFiles(prev => ({
+                          ...prev,
+                          attendance: e.target.files?.[0] || null
+                        }))}
+                        style={{
+                          position: 'absolute',
+                          left: '-9999px',
+                          opacity: 0
+                        }}
+                        id="attendance-file-input"
+                      />
+                      <label
+                        htmlFor="attendance-file-input"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 'var(--spacing-xs)',
+                          width: '100%',
+                          padding: 'var(--spacing-sm) var(--spacing-md)',
+                          background: 'var(--bg-white)',
+                          border: '2px dashed var(--border-medium)',
+                          borderRadius: 'var(--radius-md)',
+                          cursor: 'pointer',
+                          transition: 'all var(--transition-fast)',
+                          fontSize: 'var(--font-sm)',
+                          color: 'var(--text-secondary)',
+                          textAlign: 'center',
+                          minHeight: '50px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                          e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                          e.currentTarget.style.color = 'var(--primary-dark)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--border-medium)';
+                          e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
+                        }}
+                      >
+                        <Upload size={16} />
+                        {uploadFiles.attendance?.name || 'Choose Excel/CSV File (MANDATORY)'}
+                      </label>
+                    </div>
                     <button
                       className="btn btn-primary"
                       onClick={() => handleFileUpload('attendance')}
-                      disabled={!uploadFile || uploading}
+                      disabled={!uploadFiles.attendance || uploading}
                       style={{
                         width: '100%',
-                        opacity: (!uploadFile || uploading) ? 0.6 : 1
+                        opacity: (!uploadFiles.attendance || uploading) ? 0.6 : 1
                       }}
                     >
-                      {uploading && uploadType === 'attendance' ? 'Uploading...' : 'Upload Attendance'}
+                      {uploading && uploadType === 'attendance' ? 'Uploading...' : 'Upload Attendance (REQUIRED)'}
                     </button>
                   </>
                 )}
@@ -449,7 +583,7 @@ const Meetings: React.FC = () => {
                   margin: '0 auto var(--spacing-md) auto',
                   color: 'white'
                 }}>
-                  <TrendingUp size={24} />
+                  <TrendingUp size={30} />
                 </div>
                 <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
                   Post-test Data
@@ -462,35 +596,77 @@ const Meetings: React.FC = () => {
                   marginBottom: 'var(--spacing-md)',
                   fontSize: 'var(--font-sm)'
                 }}>
-                  {getUploadStatusIcon(uploadStatus.postTest)}
-                  <span style={{
-                    color: uploadStatus.postTest === 'uploaded' ? 'var(--success-600)' :
-                           uploadStatus.postTest === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)'
-                  }}>
-                    {getUploadStatusText(uploadStatus.postTest)}
+                  {getUploadStatusIcon('not-required')}
+                  <span style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>
+                    Optional - Upload if Available
                   </span>
                 </div>
-                {uploadStatus.postTest !== 'not-required' && (
-                  <>
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                      style={{ marginBottom: 'var(--spacing-md)', width: '100%' }}
-                    />
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleFileUpload('posttest')}
-                      disabled={!uploadFile || uploading}
-                      style={{
-                        width: '100%',
-                        opacity: (!uploadFile || uploading) ? 0.6 : 1
-                      }}
-                    >
-                      {uploading && uploadType === 'posttest' ? 'Uploading...' : 'Upload Post-test'}
-                    </button>
-                  </>
-                )}
+                
+                {/* Optional upload section - always available */}
+                <div style={{
+                  position: 'relative',
+                  marginBottom: 'var(--spacing-md)',
+                  overflow: 'hidden'
+                }}>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={(e) => setUploadFiles(prev => ({
+                      ...prev,
+                      posttest: e.target.files?.[0] || null
+                    }))}
+                    style={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      opacity: 0
+                    }}
+                    id="posttest-file-input"
+                  />
+                  <label
+                    htmlFor="posttest-file-input"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 'var(--spacing-xs)',
+                      width: '100%',
+                      padding: 'var(--spacing-sm) var(--spacing-md)',
+                      background: 'var(--bg-white)',
+                      border: '2px dashed var(--border-medium)',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                      fontSize: 'var(--font-sm)',
+                      color: 'var(--text-secondary)',
+                      textAlign: 'center',
+                      minHeight: '50px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                      e.currentTarget.style.color = 'var(--primary-dark)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-medium)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
+                  >
+                    <Upload size={16} />
+                    {uploadFiles.posttest?.name || 'Choose Excel/CSV File (Optional)'}
+                  </label>
+                </div>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleFileUpload('posttest')}
+                  disabled={!uploadFiles.posttest || uploading}
+                  style={{
+                    width: '100%',
+                    opacity: (!uploadFiles.posttest || uploading) ? 0.6 : 1
+                  }}
+                >
+                  {uploading && uploadType === 'posttest' ? 'Uploading...' : 'Upload Post-test (Optional)'}
+                </button>
               </div>
             </div>
           </div>
@@ -517,7 +693,7 @@ const Meetings: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
         <h1 style={{
-          fontSize: 'var(--font-2xl)',
+          fontSize: 'var(--font-3xl)',
           fontWeight: 'bold',
           margin: '0 0 var(--spacing-sm) 0',
           color: 'var(--text-primary)'
@@ -536,118 +712,207 @@ const Meetings: React.FC = () => {
         </p>
       </div>
 
+      {/* Filter Section */}
+      <div style={{ 
+        marginBottom: 'var(--spacing-lg)',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        gap: 'var(--spacing-md)',
+        flexWrap: 'wrap'
+      }}>
+        <span style={{
+          fontSize: 'var(--font-sm)',
+          fontWeight: '500',
+          color: 'var(--text-primary)'
+        }}>
+          Filter by Status:
+        </span>
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          {[
+            { value: 'all', label: 'All' },
+            { value: 'upcoming', label: 'Upcoming' },
+            { value: 'ongoing', label: 'Ongoing' },
+            { value: 'completed', label: 'Completed' }
+          ].map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setStatusFilter(filter.value as any)}
+              style={{
+                padding: '6px 16px',
+                borderRadius: '8px',
+                border: statusFilter === filter.value ? 'none' : '1px solid var(--border-light)',
+                background: statusFilter === filter.value 
+                  ? 'var(--primary-gradient)' 
+                  : 'var(--bg-white)',
+                color: statusFilter === filter.value ? 'var(--text-white)' : 'var(--text-secondary)',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: statusFilter === filter.value 
+                  ? 'var(--shadow-sm)' 
+                  : '0 1px 2px rgba(0, 0, 0, 0.05)',
+                minWidth: '70px',
+                textAlign: 'center' as const,
+                outline: 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (statusFilter !== filter.value) {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                  e.currentTarget.style.borderColor = 'var(--border-medium)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (statusFilter !== filter.value) {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                  e.currentTarget.style.borderColor = 'var(--border-light)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                }
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+              onMouseUp={(e) => {
+                if (statusFilter !== filter.value) {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Meetings List */}
       <div style={{
-        display: 'grid',
-        gap: 'var(--spacing-md)',
-        gridTemplateColumns: '1fr'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--spacing-sm)'
       }}>
-        {meetings.map((meeting) => (
+        {getFilteredAndSortedMeetings().map((meeting) => (
           <div 
             key={meeting.id}
-            className="card"
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: 'var(--spacing-md)',
+              background: 'var(--bg-white)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-light)',
               cursor: 'pointer',
               transition: 'all var(--transition-normal)',
-              border: '1px solid var(--border-light)'
+              boxShadow: 'var(--shadow-sm)'
             }}
             onClick={() => setSelectedMeeting(meeting)}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
             }}
           >
-            <div className="row" style={{ alignItems: 'center' }}>
-              <div className="col-8">
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    background: 'var(--primary-gradient)',
-                    borderRadius: 'var(--radius-lg)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    flexShrink: 0
-                  }}>
-                    <Calendar size={24} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{
-                      fontSize: 'var(--font-lg)',
-                      fontWeight: '600',
-                      margin: '0 0 var(--spacing-xs) 0',
-                      color: 'var(--text-primary)'
-                    }}>
-                      {meeting.title}
-                    </h3>
-                    <div style={{
-                      display: 'flex',
-                      gap: 'var(--spacing-lg)',
-                      marginBottom: 'var(--spacing-xs)',
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--text-secondary)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Calendar size={14} />
-                        {new Date(meeting.date).toLocaleDateString('en-IN')}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Clock size={14} />
-                        {meeting.time}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Users size={14} />
-                        {meeting.attendees}/{meeting.maxAttendees}
-                      </div>
-                    </div>
-                    <p style={{
-                      color: 'var(--text-secondary)',
-                      margin: 0,
-                      fontSize: 'var(--font-sm)',
-                      lineHeight: 1.4,
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}>
-                      {meeting.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="col-4" style={{ textAlign: 'right' }}>
-                <div style={{ marginBottom: 'var(--spacing-sm)' }}>
-                  <span style={{
-                    padding: '4px 12px',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--font-xs)',
-                    fontWeight: '600',
-                    backgroundColor: getStatusBg(meeting.status),
-                    color: getStatusColor(meeting.status),
-                    textTransform: 'capitalize'
-                  }}>
-                    {meeting.status}
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: 'var(--font-sm)',
-                  color: 'var(--text-secondary)',
-                  marginBottom: 'var(--spacing-sm)'
+            {/* Icon */}
+            <div style={{
+              width: '40px',
+              height: '40px',
+              background: 'var(--primary-gradient)',
+              borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              flexShrink: 0,
+              marginRight: 'var(--spacing-md)'
+            }}>
+              <Calendar size={25} />
+            </div>
+
+            {/* Content */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 'var(--spacing-xs)',
+                flexWrap: 'wrap',
+                gap: 'var(--spacing-sm)'
+              }}>
+                <h3 style={{
+                  fontSize: 'var(--font-base)',
+                  fontWeight: '600',
+                  margin: 0,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.3,
+                  flex: '1 1 auto',
+                  minWidth: '200px'
                 }}>
-                  <div style={{ fontWeight: '500' }}>{meeting.category}</div>
-                  <div>{meeting.instructor}</div>
+                  {meeting.title}
+                </h3>
+                <span style={{
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
+                  backgroundColor: getStatusBg(meeting.status),
+                  color: getStatusColor(meeting.status),
+                  textTransform: 'capitalize',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}>
+                  {meeting.status}
+                </span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: 'var(--font-sm)',
+                color: 'var(--text-secondary)',
+                flexWrap: 'wrap',
+                gap: 'var(--spacing-sm)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-lg)',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                    <Calendar size={16} />
+                    {new Date(meeting.date).toLocaleDateString('en-IN')}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                    <Clock size={16} />
+                    {meeting.time}
+                  </div>
+                  <div style={{ fontWeight: '500', color: 'var(--primary-600)' }}>
+                    {meeting.category}
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)' }}>
+                    {meeting.instructor}
+                  </div>
                 </div>
                 <ChevronRight 
-                  size={20} 
+                  size={16} 
                   style={{ 
                     color: 'var(--primary-600)',
-                    transition: 'transform var(--transition-fast)'
+                    transition: 'transform var(--transition-fast)',
+                    flexShrink: 0
                   }} 
                 />
               </div>
@@ -657,15 +922,22 @@ const Meetings: React.FC = () => {
       </div>
 
       {/* No meetings message */}
-      {meetings.length === 0 && (
+      {getFilteredAndSortedMeetings().length === 0 && (
         <div style={{
           textAlign: 'center',
           padding: 'var(--spacing-2xl)',
           color: 'var(--text-secondary)'
         }}>
           <Calendar size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
-          <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>No meetings scheduled</h3>
-          <p style={{ margin: 0 }}>Check back later for new training sessions.</p>
+          <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>
+            {statusFilter === 'all' ? 'No meetings scheduled' : `No ${statusFilter} meetings`}
+          </h3>
+          <p style={{ margin: 0 }}>
+            {statusFilter === 'all' 
+              ? 'Check back later for new training sessions.' 
+              : 'Try selecting a different filter or check back later.'
+            }
+          </p>
         </div>
       )}
     </div>

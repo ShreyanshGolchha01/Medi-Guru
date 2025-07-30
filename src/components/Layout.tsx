@@ -31,13 +31,13 @@ const Layout: React.FC = () => {
 
       <main style={{
         marginLeft: isSidebarOpen ? '280px' : '0',
-        marginTop: '70px',
+        marginTop: '30px',
         transition: 'margin-left var(--transition-normal)',
         minHeight: 'calc(100vh - 70px)',
         background: 'var(--bg-light)'
       }}>
         <div style={{
-          padding: 'var(--spacing-md)',
+          padding: 'var(--spacing-xs)',
           maxWidth: '100%',
           overflow: 'hidden'
         }}>

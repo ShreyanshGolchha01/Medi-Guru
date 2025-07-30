@@ -15,7 +15,7 @@ export const mockUsers: User[] = [
   {
     id: '1',
     name: 'Dr. Rajesh Kumar',
-    email: 'rajesh.kumar@raipur.gov.in',
+    email: 'doctor@mediguru.com',
     role: 'doctor',
     department: 'General Medicine',
     registrationNumber: 'CG/MED/2019/001',
@@ -27,7 +27,7 @@ export const mockUsers: User[] = [
   {
     id: '2',
     name: 'Dr. Priya Sharma',
-    email: 'priya.sharma@raipur.gov.in',
+    email: 'priya@mediguru.com',
     role: 'doctor',
     department: 'Pediatrics',
     registrationNumber: 'CG/MED/2020/045',
@@ -39,7 +39,7 @@ export const mockUsers: User[] = [
   {
     id: '3',
     name: 'Dr. Amit Verma',
-    email: 'amit.verma@cmho.raipur.gov.in',
+    email: 'admin@mediguru.com',
     role: 'admin',
     department: 'Administration',
     registrationNumber: 'CG/ADMIN/2018/005',

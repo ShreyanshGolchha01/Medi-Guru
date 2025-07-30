@@ -7,11 +7,8 @@ import {
   TrendingUp,
   Award,
   BookOpen,
-  Activity,
   FileText,
-  Upload,
-  Eye,
-  Clock
+  Eye
 } from 'lucide-react';
 
 interface DoctorStats {
@@ -320,7 +317,7 @@ const DoctorDashboard: React.FC = () => {
       {/* Doctor Main Content */}
       <div className="row">
         {/* Quick Actions */}
-        <div className="col-6">
+        <div className="col-12">
           <div className="card">
             <h2 style={{
               fontSize: 'var(--font-xl)',
@@ -336,7 +333,7 @@ const DoctorDashboard: React.FC = () => {
             </h2>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              gridTemplateColumns: 'repeat(4, 1fr)',
               gap: 'var(--spacing-md)'
             }}>
               <button 
@@ -407,262 +404,6 @@ const DoctorDashboard: React.FC = () => {
                 <TrendingUp size={20} />
                 Upload Post-test
               </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="col-6">
-          <div className="card">
-            <h2 style={{
-              fontSize: 'var(--font-xl)',
-              fontWeight: '600',
-              marginBottom: 'var(--spacing-lg)',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Activity size={20} />
-              Recent Activity
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-              <div style={{
-                padding: 'var(--spacing-md)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--background-soft)'
-              }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'flex-start',
-                  marginBottom: 'var(--spacing-xs)'
-                }}>
-                  <h4 style={{ margin: 0, fontSize: 'var(--font-base)', fontWeight: '600' }}>
-                    Attended Meeting: Cardiology Update
-                  </h4>
-                  <span style={{ 
-                    fontSize: 'var(--font-sm)', 
-                    color: 'var(--text-secondary)',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    2 hours ago
-                  </span>
-                </div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: 'var(--font-sm)', 
-                  color: 'var(--text-secondary)' 
-                }}>
-                  Duration: 2h 15m | Post-test Score: 85%
-                </p>
-              </div>
-              
-              <div style={{
-                padding: 'var(--spacing-md)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--background-soft)'
-              }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'flex-start',
-                  marginBottom: 'var(--spacing-xs)'
-                }}>
-                  <h4 style={{ margin: 0, fontSize: 'var(--font-base)', fontWeight: '600' }}>
-                    Uploaded Attendance Data
-                  </h4>
-                  <span style={{ 
-                    fontSize: 'var(--font-sm)', 
-                    color: 'var(--text-secondary)',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    1 day ago
-                  </span>
-                </div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: 'var(--font-sm)', 
-                  color: 'var(--text-secondary)' 
-                }}>
-                  Emergency Medicine Training - 32 attendees
-                </p>
-              </div>
-              
-              <div style={{
-                padding: 'var(--spacing-md)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--background-soft)'
-              }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'flex-start',
-                  marginBottom: 'var(--spacing-xs)'
-                }}>
-                  <h4 style={{ margin: 0, fontSize: 'var(--font-base)', fontWeight: '600' }}>
-                    New Meeting Invitation
-                  </h4>
-                  <span style={{ 
-                    fontSize: 'var(--font-sm)', 
-                    color: 'var(--text-secondary)',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    3 days ago
-                  </span>
-                </div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: 'var(--font-sm)', 
-                  color: 'var(--text-secondary)' 
-                }}>
-                  Pediatric Care Workshop - Jan 15, 2025
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upload Progress & Upcoming */}
-      <div className="row" style={{ marginTop: 'var(--spacing-lg)' }}>
-        {/* Upload Progress */}
-        <div className="col-6">
-          <div className="card">
-            <h2 style={{
-              fontSize: 'var(--font-xl)',
-              fontWeight: '600',
-              marginBottom: 'var(--spacing-lg)',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Upload size={20} />
-              Upload Progress
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--spacing-sm) 0',
-                borderBottom: '1px solid var(--border-light)'
-              }}>
-                <span style={{ fontSize: 'var(--font-sm)', fontWeight: '500' }}>Pre-test Data</span>
-                <span style={{ 
-                  background: 'var(--success-100)', 
-                  color: 'var(--success-800)', 
-                  padding: '2px 8px', 
-                  borderRadius: 'var(--radius-sm)', 
-                  fontSize: 'var(--font-xs)' 
-                }}>
-                  Completed
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--spacing-sm) 0',
-                borderBottom: '1px solid var(--border-light)'
-              }}>
-                <span style={{ fontSize: 'var(--font-sm)', fontWeight: '500' }}>Attendance Data</span>
-                <span style={{ 
-                  background: 'var(--warning-100)', 
-                  color: 'var(--warning-800)', 
-                  padding: '2px 8px', 
-                  borderRadius: 'var(--radius-sm)', 
-                  fontSize: 'var(--font-xs)' 
-                }}>
-                  Pending
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--spacing-sm) 0'
-              }}>
-                <span style={{ fontSize: 'var(--font-sm)', fontWeight: '500' }}>Post-test Data</span>
-                <span style={{ 
-                  background: 'var(--gray-100)', 
-                  color: 'var(--gray-800)', 
-                  padding: '2px 8px', 
-                  borderRadius: 'var(--radius-sm)', 
-                  fontSize: 'var(--font-xs)' 
-                }}>
-                  Not Started
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Upcoming Sessions */}
-        <div className="col-6">
-          <div className="card">
-            <h2 style={{
-              fontSize: 'var(--font-xl)',
-              fontWeight: '600',
-              marginBottom: 'var(--spacing-lg)',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Clock size={20} />
-              Upcoming Sessions
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-              <div style={{
-                padding: 'var(--spacing-md)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--background-soft)'
-              }}>
-                <h4 style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-base)', fontWeight: '600' }}>
-                  Pediatric Emergency Care
-                </h4>
-                <p style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-                  Tomorrow, 2:00 PM - 4:00 PM
-                </p>
-                <span style={{ 
-                  background: 'var(--primary-100)', 
-                  color: 'var(--primary-800)', 
-                  padding: '2px 8px', 
-                  borderRadius: 'var(--radius-sm)', 
-                  fontSize: 'var(--font-xs)' 
-                }}>
-                  Required
-                </span>
-              </div>
-              
-              <div style={{
-                padding: 'var(--spacing-md)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--background-soft)'
-              }}>
-                <h4 style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-base)', fontWeight: '600' }}>
-                  Advanced Cardiology Update
-                </h4>
-                <p style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-                  Jan 18, 10:00 AM - 12:00 PM
-                </p>
-                <span style={{ 
-                  background: 'var(--success-100)', 
-                  color: 'var(--success-800)', 
-                  padding: '2px 8px', 
-                  borderRadius: 'var(--radius-sm)', 
-                  fontSize: 'var(--font-xs)' 
-                }}>
-                  Optional
-                </span>
-              </div>
             </div>
           </div>
         </div>

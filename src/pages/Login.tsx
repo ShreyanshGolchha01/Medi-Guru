@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, Shield, Building2, Users, Heart } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Shield, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import type { LoginForm } from '../types';
 
@@ -110,121 +110,48 @@ const Login: React.FC = () => {
         alignItems: 'center',
         position: 'relative',
         zIndex: 1
-      }}>
+      }}
+      className="login-container"
+      >
         {/* Left Side - Welcome Section */}
         <div style={{
           color: 'var(--text-white)',
-          padding: 'var(--spacing-lg)'
-        }}>
+          padding: 'var(--spacing-lg)',
+          position: 'relative'
+        }}
+        className="welcome-section"
+        >
+          {/* Large Background Logo Circle */}
           <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '40%',
+            transform: 'translate(-50%, -50%)',
+            width: '400px',
+            height: '400px',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--spacing-md)',
-            marginBottom: 'var(--spacing-xl)'
+            justifyContent: 'center',
+            opacity: 1,
+            zIndex: 0,
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2), inset 0 0 30px rgba(255, 255, 255, 0.1)'
           }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              background: 'var(--text-white)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--primary-dark)',
-              fontSize: 'var(--font-2xl)',
-              fontWeight: 'bold'
-            }}>
-              MG
-            </div>
-            <div>
-              <h1 style={{
-                fontSize: 'var(--font-3xl)',
-                fontWeight: 'bold',
-                margin: 0,
-                lineHeight: 1.2
-              }}>
-                Medi Guru
-              </h1>
-              <p style={{
-                fontSize: 'var(--font-base)',
-                margin: 0,
-                opacity: 0.9
-              }}>
-                Virtual Medical Training Portal
-              </p>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-            <h2 style={{
-              fontSize: 'var(--font-2xl)',
-              fontWeight: '600',
-              marginBottom: 'var(--spacing-md)',
-              lineHeight: 1.3
-            }}>
-              Welcome to Your Medical Training Hub
-            </h2>
-            <p style={{
-              fontSize: 'var(--font-lg)',
-              opacity: 0.9,
-              lineHeight: 1.6,
-              marginBottom: 'var(--spacing-lg)'
-            }}>
-              Join expert-led training sessions, access comprehensive learning materials, 
-              and enhance your medical knowledge with our comprehensive virtual training platform.
-            </p>
-          </div>
-
-          {/* Features */}
-          <div style={{
-            display: 'grid',
-            gap: 'var(--spacing-md)'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Heart size={24} style={{ color: '#ff6b6b' }} />
-              <span style={{ fontSize: 'var(--font-base)' }}>
-                Expert-led weekly medical training sessions
-              </span>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Shield size={24} style={{ color: '#4ecdc4' }} />
-              <span style={{ fontSize: 'var(--font-base)' }}>
-                Secure government portal with role-based access
-              </span>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Users size={24} style={{ color: '#45b7d1' }} />
-              <span style={{ fontSize: 'var(--font-base)' }}>
-                Connect with medical professionals across Raipur
-              </span>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <Building2 size={24} style={{ color: '#f9ca24' }} />
-              <span style={{ fontSize: 'var(--font-base)' }}>
-                CMHO Office, Raipur | Health & Family Welfare Dept., CG
-              </span>
-            </div>
+            <img 
+              src="/medigurulogo.svg" 
+              alt="Medi Guru Background Logo" 
+              style={{
+                width: '320px',
+                height: '320px',
+                objectFit: 'contain'
+              }}
+            />
           </div>
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="card" style={{
+        <div className="card login-form" style={{
           background: 'var(--bg-white)',
           borderRadius: 'var(--radius-xl)',
           padding: 'var(--spacing-xl)',
@@ -430,6 +357,18 @@ const Login: React.FC = () => {
               )}
             </button>
 
+            {/* Powered By */}
+            <div style={{
+              textAlign: 'center',
+              marginBottom: 'var(--spacing-md)',
+              padding: 'var(--spacing-sm)',
+              borderTop: '1px solid var(--border-light)',
+              fontSize: 'var(--font-xs)',
+              color: 'var(--text-muted)'
+            }}>
+              Powered by: <strong style={{ color: 'var(--primary-dark)' }}>SSIPMT, RAIPUR</strong>
+            </div>
+
             {/* Error Message */}
             {errors.submit && (
               <div style={{
@@ -446,45 +385,6 @@ const Login: React.FC = () => {
               </div>
             )}
           </form>
-
-          {/* Demo Accounts Info */}
-          <div style={{
-            marginTop: 'var(--spacing-lg)',
-            padding: 'var(--spacing-md)',
-            background: 'var(--bg-light)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)'
-          }}>
-            <h4 style={{
-              fontSize: 'var(--font-sm)',
-              fontWeight: '600',
-              margin: '0 0 var(--spacing-xs) 0',
-              color: 'var(--text-primary)'
-            }}>
-              Demo Accounts ({selectedRole === 'admin' ? 'Admin' : 'Doctor'}):
-            </h4>
-            <div style={{
-              fontSize: 'var(--font-xs)',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.4
-            }}>
-              {selectedRole === 'admin' ? (
-                <>
-                  <div>CMHO Admin: amit.verma@cmho.raipur.gov.in</div>
-                  <div>District Collector: deepak.agrawal@collector.raipur.gov.in</div>
-                </>
-              ) : (
-                <>
-                  <div>Medical Officer: rajesh.kumar@raipur.gov.in</div>
-                  <div>Pediatrician: priya.sharma@raipur.gov.in</div>
-                  <div>Expert: sunita.patel@expert.gov.in</div>
-                </>
-              )}
-              <div style={{ marginTop: 'var(--spacing-xs)', fontStyle: 'italic' }}>
-                Use any password for demo login
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -493,18 +393,73 @@ const Login: React.FC = () => {
         @media (max-width: 768px) {
           .login-container {
             grid-template-columns: 1fr !important;
-            gap: var(--spacing-lg) !important;
+            gap: var(--spacing-md) !important;
+            padding: var(--spacing-sm) !important;
           }
           
           .welcome-section {
-            order: 2;
+            order: 1;
             text-align: center;
             padding: var(--spacing-md) !important;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .welcome-section > div {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+            width: 200px !important;
+            height: 200px !important;
+            margin: 0 auto !important;
+          }
+          
+          .welcome-section img {
+            width: 150px !important;
+            height: 150px !important;
           }
           
           .login-form {
-            order: 1;
+            order: 2;
             margin: 0 !important;
+            padding: var(--spacing-lg) !important;
+            border-radius: var(--radius-lg) !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .login-container {
+            padding: var(--spacing-xs) !important;
+          }
+          
+          .welcome-section {
+            min-height: 150px;
+          }
+          
+          .welcome-section > div {
+            width: 150px !important;
+            height: 150px !important;
+          }
+          
+          .welcome-section img {
+            width: 120px !important;
+            height: 120px !important;
+          }
+          
+          .login-form {
+            padding: var(--spacing-md) !important;
+            border-radius: var(--radius-md) !important;
+          }
+          
+          .login-form h3 {
+            font-size: var(--font-lg) !important;
+          }
+          
+          .login-form p {
+            font-size: var(--font-sm) !important;
           }
         }
       `}</style>

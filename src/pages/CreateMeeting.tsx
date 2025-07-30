@@ -112,8 +112,8 @@ const CreateMeeting: React.FC = () => {
 
   return (
     <div style={{
-      padding: 'var(--spacing-lg)',
-      maxWidth: '800px',
+      padding: '0 var(--spacing-2xl) var(--spacing-xl) var(--spacing-xl)',
+      maxWidth: '900px',
       margin: '0 auto'
     }}>
       {/* Header */}
@@ -191,7 +191,7 @@ const CreateMeeting: React.FC = () => {
         }}>
           <h2 style={{
             margin: 0,
-            fontSize: 'var(--font-lg)',
+            fontSize: 'var(--font-2xl)',
             fontWeight: '600'
           }}>
             Meeting Details

@@ -153,24 +153,6 @@ const MeetingStatistics: React.FC = () => {
     return mockData[meetingId] || [];
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': case 'present': return 'var(--success-600)';
-      case 'pending': case 'late': return 'var(--warning-600)';
-      case 'absent': return 'var(--error-600)';
-      default: return 'var(--gray-500)';
-    }
-  };
-
-  const getStatusBg = (status: string) => {
-    switch (status) {
-      case 'completed': case 'present': return 'var(--success-100)';
-      case 'pending': case 'late': return 'var(--warning-100)';
-      case 'absent': return 'var(--error-100)';
-      default: return 'var(--gray-100)';
-    }
-  };
-
   const getScoreColor = (score: number, total: number) => {
     const percentage = (score / total) * 100;
     if (percentage >= 80) return 'var(--success-600)';
@@ -228,13 +210,13 @@ const MeetingStatistics: React.FC = () => {
               margin: '0 auto var(--spacing-md) auto',
               color: 'white'
             }}>
-              <FileText size={24} />
+              <FileText size={30} />
             </div>
             <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>Pre-test Results</h3>
             <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-              <div>Completed: {preTestStats.completed}/{preTestStats.total}</div>
+              {/* <div>Completed: {preTestStats.completed}/{preTestStats.total}</div> */}
               <div>Average Score: {preTestStats.average}%</div>
-              <div>Absent: {preTestStats.absent}</div>
+              {/* <div>Absent: {preTestStats.absent}</div> */}
             </div>
           </div>
         </div>
@@ -252,13 +234,13 @@ const MeetingStatistics: React.FC = () => {
               margin: '0 auto var(--spacing-md) auto',
               color: 'white'
             }}>
-              <UserCheck size={24} />
+              <UserCheck size={30} />
             </div>
             <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>Attendance</h3>
             <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-              <div>Present: {attendanceStats.present}/{attendanceStats.total}</div>
+              {/* <div>Present: {attendanceStats.present}/{attendanceStats.total}</div> */}
               <div>Attendance Rate: {attendanceStats.attendanceRate}%</div>
-              <div>Late Arrivals: {attendanceStats.late}</div>
+              {/* <div>Late Arrivals: {attendanceStats.late}</div> */}
             </div>
           </div>
         </div>
@@ -276,13 +258,13 @@ const MeetingStatistics: React.FC = () => {
               margin: '0 auto var(--spacing-md) auto',
               color: 'white'
             }}>
-              <TrendingUp size={24} />
+              <TrendingUp size={30} />
             </div>
             <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>Post-test Results</h3>
             <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-              <div>Completed: {postTestStats.completed}/{postTestStats.total}</div>
+              {/* <div>Completed: {postTestStats.completed}/{postTestStats.total}</div> */}
               <div>Average Score: {postTestStats.average}%</div>
-              <div>Improvement: +{(parseFloat(postTestStats.average || '0') - parseFloat(preTestStats.average || '0')).toFixed(1)}%</div>
+              {/* <div>Improvement: +{(parseFloat(postTestStats.average || '0') - parseFloat(preTestStats.average || '0')).toFixed(1)}%</div> */}
             </div>
           </div>
         </div>
@@ -301,17 +283,17 @@ const MeetingStatistics: React.FC = () => {
       case 'pretest':
         data = getPreTestData(selectedMeeting.id);
         title = 'Pre-test Results';
-        columns = ['Name', 'Department', 'Score', 'Time Taken', 'Status'];
+        columns = ['Name', 'Department', 'Score'];
         break;
       case 'posttest':
         data = getPostTestData(selectedMeeting.id);
         title = 'Post-test Results';
-        columns = ['Name', 'Department', 'Score', 'Time Taken', 'Status'];
+        columns = ['Name', 'Department', 'Score'];
         break;
       case 'attendance':
         data = getAttendanceData(selectedMeeting.id);
         title = 'Attendance Records';
-        columns = ['Name', 'Department', 'Login Time', 'Logout Time', 'Duration', 'Status'];
+        columns = ['Name', 'Department'];
         break;
     }
 
@@ -328,7 +310,7 @@ const MeetingStatistics: React.FC = () => {
           alignItems: 'center', 
           marginBottom: 'var(--spacing-lg)' 
         }}>
-          <h2 style={{ margin: 0, fontSize: 'var(--font-xl)', fontWeight: '600' }}>
+          <h2 style={{ margin: 0, fontSize: 'var(--font-2xl)', fontWeight: '600' }}>
             {title}
           </h2>
           <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
@@ -393,55 +375,25 @@ const MeetingStatistics: React.FC = () => {
                   <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
                     {item.department}
                   </td>
-                  {activeView !== 'attendance' ? (
-                    <>
-                      <td style={{ padding: 'var(--spacing-md)' }}>
+                  {activeView !== 'attendance' && (
+                    <td style={{ padding: 'var(--spacing-md)' }}>
+                      <span style={{ 
+                        fontWeight: '600',
+                        color: item.status === 'completed' ? getScoreColor(item.score, item.totalQuestions) : 'var(--text-secondary)'
+                      }}>
+                        {item.status === 'completed' ? `${item.score}/${item.totalQuestions}` : '-'}
+                      </span>
+                      {item.status === 'completed' && (
                         <span style={{ 
-                          fontWeight: '600',
-                          color: item.status === 'completed' ? getScoreColor(item.score, item.totalQuestions) : 'var(--text-secondary)'
+                          marginLeft: 'var(--spacing-xs)', 
+                          fontSize: 'var(--font-sm)', 
+                          color: 'var(--text-secondary)' 
                         }}>
-                          {item.status === 'completed' ? `${item.score}/${item.totalQuestions}` : '-'}
+                          ({((item.score / item.totalQuestions) * 100).toFixed(0)}%)
                         </span>
-                        {item.status === 'completed' && (
-                          <span style={{ 
-                            marginLeft: 'var(--spacing-xs)', 
-                            fontSize: 'var(--font-sm)', 
-                            color: 'var(--text-secondary)' 
-                          }}>
-                            ({((item.score / item.totalQuestions) * 100).toFixed(0)}%)
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                        {item.timeTaken}
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                        {item.loginTime}
-                      </td>
-                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                        {item.logoutTime}
-                      </td>
-                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                        {item.duration}
-                      </td>
-                    </>
+                      )}
+                    </td>
                   )}
-                  <td style={{ padding: 'var(--spacing-md)' }}>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: 'var(--font-xs)',
-                      fontWeight: '500',
-                      backgroundColor: getStatusBg(item.status),
-                      color: getStatusColor(item.status),
-                      textTransform: 'capitalize'
-                    }}>
-                      {item.status}
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -548,12 +500,12 @@ const MeetingStatistics: React.FC = () => {
                       color: activeView === tab.id ? 'var(--primary-600)' : 'var(--text-secondary)',
                       borderBottom: activeView === tab.id ? '2px solid var(--primary-600)' : '2px solid transparent',
                       cursor: 'pointer',
-                      fontSize: 'var(--font-sm)',
+                      fontSize: 'var(--font-lg)',
                       fontWeight: activeView === tab.id ? '600' : '500',
                       transition: 'all var(--transition-fast)'
                     }}
                   >
-                    <Icon size={16} />
+                    <Icon size={20} />
                     {tab.label}
                   </button>
                 );
@@ -573,7 +525,7 @@ const MeetingStatistics: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
         <h1 style={{
-          fontSize: 'var(--font-2xl)',
+          fontSize: 'var(--font-3xl)',
           fontWeight: 'bold',
           margin: '0 0 var(--spacing-sm) 0',
           color: 'var(--text-primary)'
@@ -624,7 +576,7 @@ const MeetingStatistics: React.FC = () => {
                     color: 'white',
                     flexShrink: 0
                   }}>
-                    <BarChart3 size={24} />
+                    <BarChart3 size={30} />
                   </div>
                   <div>
                     <h3 style={{
@@ -643,15 +595,15 @@ const MeetingStatistics: React.FC = () => {
                       color: 'var(--text-secondary)'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Calendar size={14} />
+                        <Calendar size={18} />
                         {new Date(meeting.date).toLocaleDateString('en-IN')}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Clock size={14} />
+                        <Clock size={18} />
                         {meeting.time}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                        <Users size={14} />
+                        <Users size={20} />
                         {meeting.attendees} participants
                       </div>
                     </div>
@@ -660,7 +612,7 @@ const MeetingStatistics: React.FC = () => {
                       margin: 0,
                       fontSize: 'var(--font-sm)'
                     }}>
-                      Category: {meeting.category} | Instructor: {meeting.instructor}
+                      Topic: {meeting.category} | Instructor: {meeting.instructor}
                     </p>
                   </div>
                 </div>

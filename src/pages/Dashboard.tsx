@@ -1,7 +1,7 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AdminDashboard from './AdminDashboard';
-import DoctorDashboard from './DoctorDashboard';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -10,7 +10,8 @@ const Dashboard: React.FC = () => {
   if (user?.role === 'admin') {
     return <AdminDashboard />;
   } else if (user?.role === 'doctor') {
-    return <DoctorDashboard />;
+    // Redirect doctors directly to meetings page
+    return <Navigate to="/meetings" replace />;
   } else {
     // Fallback in case of unknown role
     return (
