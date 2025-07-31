@@ -12,7 +12,6 @@ import {
   Search,
   BarChart3
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import serverUrl from '../services/server';
 import * as XLSX from 'xlsx';
 
@@ -81,7 +80,6 @@ const MeetingStatistics: React.FC = () => {
     attendance: []
   });
   const [statisticsLoading, setStatisticsLoading] = useState(false);
-  const { user } = useAuth();
 
   // Fetch meetings from API
   useEffect(() => {
@@ -213,7 +211,7 @@ const MeetingStatistics: React.FC = () => {
   };
 
   // Update the get data functions to use actual data
-  const getRegisteredData = (meetingId: string): RegisteredParticipant[] => {
+  const getRegisteredData = (): RegisteredParticipant[] => {
     if (!statisticsData.registered || !Array.isArray(statisticsData.registered)) {
       return [];
     }
@@ -230,7 +228,7 @@ const MeetingStatistics: React.FC = () => {
     }));
   };
 
-  const getPreTestData = (meetingId: string): ParticipantScore[] => {
+  const getPreTestData = (): ParticipantScore[] => {
     if (!statisticsData.pretest || !Array.isArray(statisticsData.pretest)) {
       return [];
     }
@@ -245,7 +243,7 @@ const MeetingStatistics: React.FC = () => {
     }));
   };
 
-  const getPostTestData = (meetingId: string): ParticipantScore[] => {
+  const getPostTestData = (): ParticipantScore[] => {
     if (!statisticsData.posttest || !Array.isArray(statisticsData.posttest)) {
       return [];
     }
@@ -260,7 +258,7 @@ const MeetingStatistics: React.FC = () => {
     }));
   };
 
-  const getAttendanceData = (meetingId: string): AttendanceRecord[] => {
+  const getAttendanceData = (): AttendanceRecord[] => {
     if (!statisticsData.attendance || !Array.isArray(statisticsData.attendance)) {
       return [];
     }
@@ -447,10 +445,10 @@ const MeetingStatistics: React.FC = () => {
       );
     }
     
-    const registeredData = getRegisteredData(selectedMeeting.id);
-    const preTestData = getPreTestData(selectedMeeting.id);
-    const postTestData = getPostTestData(selectedMeeting.id);
-    const attendanceData = getAttendanceData(selectedMeeting.id);
+    const registeredData = getRegisteredData();
+    const preTestData = getPreTestData();
+    const postTestData = getPostTestData();
+    const attendanceData = getAttendanceData();
     
     const registeredStats = { total: registeredData.length, confirmed: registeredData.filter(p => p.status === 'confirmed').length };
     const preTestStats = calculateStats(preTestData, 'score');
@@ -638,22 +636,22 @@ const MeetingStatistics: React.FC = () => {
 
     switch (activeView) {
       case 'registered':
-        data = getRegisteredData(selectedMeeting.id);
+        data = getRegisteredData();
         title = 'Registered Participants';
         columns = ['Name', 'Designation', 'Block', 'Phone'];
         break;
       case 'pretest':
-        data = getPreTestData(selectedMeeting.id);
+        data = getPreTestData();
         title = 'Pre-test Results';
-        columns = ['Name', 'Department', 'Score'];
+        columns = ['Name', 'Designation', 'Score'];
         break;
       case 'posttest':
-        data = getPostTestData(selectedMeeting.id);
+        data = getPostTestData();
         title = 'Post-test Results';
-        columns = ['Name', 'Department', 'Score'];
+        columns = ['Name', 'Designation', 'Score'];
         break;
       case 'attendance':
-        data = getAttendanceData(selectedMeeting.id);
+        data = getAttendanceData();
         title = 'Attendance Records';
         columns = ['Name', 'Login Time', 'Duration'];
         break;

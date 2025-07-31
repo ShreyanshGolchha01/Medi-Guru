@@ -7,7 +7,6 @@ import {
   Settings,
   BarChart3
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import serverUrl from '../services/server';
 
 interface AdminStats {
@@ -18,7 +17,6 @@ interface AdminStats {
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
 

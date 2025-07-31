@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, BookOpen, Save, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import serverUrl from '../services/server';
 
 interface MeetingFormData {
@@ -14,7 +13,6 @@ interface MeetingFormData {
 
 const CreateMeeting: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [formData, setFormData] = useState<MeetingFormData>({
     meetingName: '',
     meetingDate: '',
