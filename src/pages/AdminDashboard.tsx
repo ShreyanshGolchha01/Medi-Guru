@@ -121,60 +121,38 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div style={{ 
-      padding: '0 var(--spacing-md) var(--spacing-md) var(--spacing-md)'
+      padding: 'var(--spacing-sm)'
     }}>
       {/* Admin Welcome Section */}
       <div style={{
         background: 'var(--primary-gradient)',
         borderRadius: 'var(--radius-lg)',
-        padding: 'var(--spacing-lg)',
+        padding: 'var(--spacing-md)',
         color: 'var(--text-white)',
         marginBottom: 'var(--spacing-md)'
       }}>
         <div style={{ 
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--spacing-sm)'
+          gap: 'var(--spacing-xs)'
         }}>
           <div>
             <h1 style={{
-              fontSize: 'var(--font-3xl)',
+              fontSize: 'var(--font-2xl)',
               fontWeight: 'bold',
-              margin: '0 0 var(--spacing-xs) 0'
+              margin: '0 0 var(--spacing-xs) 0',
+              lineHeight: 1.2
             }}>
               {getGreeting()}, Admin!
             </h1>
             <p style={{
-              fontSize: 'var(--font-base)',
-              margin: '0 0 var(--spacing-sm) 0',
+              fontSize: 'var(--font-sm)',
+              margin: '0',
               opacity: 0.9,
-              lineHeight: 1.4
+              lineHeight: 1.3
             }}>
               Manage meetings and monitor training progress.
             </p>
-            <div style={{
-              display: 'flex',
-              gap: 'var(--spacing-md)',
-              flexWrap: 'wrap',
-              fontSize: 'var(--font-sm)'
-            }}>
-              {/* <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-xs)'
-              }}>
-                <Settings size={16} />
-                <span>ADMINISTRATOR</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-xs)'
-              }}>
-                <Calendar size={16} />
-                <span>CMHO, Raipur</span>
-              </div> */}
-            </div>
           </div>
         </div>
       </div>
@@ -182,7 +160,7 @@ const AdminDashboard: React.FC = () => {
       {/* Admin Stats Cards */}
       <div style={{ 
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: 'var(--spacing-md)',
         marginBottom: 'var(--spacing-md)'
       }}>

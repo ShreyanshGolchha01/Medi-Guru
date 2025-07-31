@@ -299,7 +299,7 @@ const Meetings: React.FC = () => {
     const uploadStatus = getUploadStatus(selectedMeeting.id);
     
     return (
-      <div style={{ padding: 'var(--spacing-lg)' }}>
+      <div style={{ padding: 'var(--spacing-sm)' }}>
         {/* Back Button */}
         <button 
           onClick={() => setSelectedMeeting(null)}
@@ -315,13 +315,14 @@ const Meetings: React.FC = () => {
             marginBottom: 'var(--spacing-lg)',
             padding: 'var(--spacing-sm)',
             borderRadius: 'var(--radius-md)',
-            transition: 'background-color var(--transition-fast)'
+            transition: 'background-color var(--transition-fast)',
+            minHeight: '44px'
           }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-50)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <ArrowLeft size={20} />
-          Back to Meetings
+          <span>Back to Meetings</span>
         </button>
 
         {/* Meeting Details Header */}
@@ -329,25 +330,26 @@ const Meetings: React.FC = () => {
           <div style={{
             background: 'var(--primary-gradient)',
             borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-            padding: 'var(--spacing-xl)',
+            padding: 'var(--spacing-md)',
             color: 'white',
-            marginBottom: 'var(--spacing-lg)'
+            marginBottom: 'var(--spacing-md)'
           }}>
             <h1 style={{
-              fontSize: 'var(--font-2xl)',
+              fontSize: 'var(--font-xl)',
               fontWeight: 'bold',
-              margin: '0 0 var(--spacing-sm) 0'
+              margin: '0 0 var(--spacing-xs) 0',
+              lineHeight: 1.2
             }}>
               {selectedMeeting.title}
             </h1>
             <div style={{
               display: 'flex',
-              gap: 'var(--spacing-lg)',
+              gap: 'var(--spacing-sm)',
               flexWrap: 'wrap',
               fontSize: 'var(--font-sm)',
               opacity: 0.9
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Calendar size={20} />
                 {new Date(selectedMeeting.date).toLocaleDateString('en-IN')}
               </div>
@@ -782,21 +784,23 @@ const Meetings: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: 'var(--spacing-lg)' }}>
+    <div style={{ padding: 'var(--spacing-sm)' }}>
       {/* Header */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
         <h1 style={{
-          fontSize: 'var(--font-3xl)',
+          fontSize: 'var(--font-2xl)',
           fontWeight: 'bold',
-          margin: '0 0 var(--spacing-sm) 0',
-          color: 'var(--text-primary)'
+          margin: '0 0 var(--spacing-xs) 0',
+          color: 'var(--text-primary)',
+          lineHeight: 1.2
         }}>
           {user?.role === 'admin' ? 'Manage Meetings' : 'Training Meetings'}
         </h1>
         <p style={{
           color: 'var(--text-secondary)',
           margin: 0,
-          fontSize: 'var(--font-base)'
+          fontSize: 'var(--font-sm)',
+          lineHeight: 1.4
         }}>
           {user?.role === 'admin' 
             ? 'View and manage all training meetings and sessions'
@@ -811,7 +815,7 @@ const Meetings: React.FC = () => {
         display: 'flex',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        gap: 'var(--spacing-md)',
+        gap: 'var(--spacing-sm)',
         flexWrap: 'wrap'
       }}>
         <span style={{

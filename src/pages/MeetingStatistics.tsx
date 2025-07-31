@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import serverUrl from '../services/server';
+import * as XLSX from 'xlsx';
 
 interface Meeting {
   id: string;
@@ -279,6 +280,109 @@ const MeetingStatistics: React.FC = () => {
     }
   };
 
+  // Export data to Excel
+  const exportToExcel = (data: any[], type: StatisticsView) => {
+    if (!selectedMeeting || !data || data.length === 0) {
+      alert('No data available to export');
+      return;
+    }
+
+    let exportData: any[] = [];
+    let filename = '';
+
+    switch (type) {
+      case 'pretest':
+        exportData = data.map((item, index) => ({
+          'S.No.': index + 1,
+          'Name': item.name,
+          'Department': item.department,
+          'Score': item.score,
+          'Total Questions': item.totalQuestions,
+          'Percentage': item.totalQuestions > 0 ? `${((item.score / item.totalQuestions) * 100).toFixed(1)}%` : '0%',
+          'Status': item.status
+        }));
+        filename = `${selectedMeeting.title.replace(/[^a-zA-Z0-9]/g, '_')}_PreTest_Results.xlsx`;
+        break;
+
+      case 'posttest':
+        exportData = data.map((item, index) => ({
+          'S.No.': index + 1,
+          'Name': item.name,
+          'Department': item.department,
+          'Score': item.score,
+          'Total Questions': item.totalQuestions,
+          'Percentage': item.totalQuestions > 0 ? `${((item.score / item.totalQuestions) * 100).toFixed(1)}%` : '0%',
+          'Status': item.status
+        }));
+        filename = `${selectedMeeting.title.replace(/[^a-zA-Z0-9]/g, '_')}_PostTest_Results.xlsx`;
+        break;
+
+      case 'attendance':
+        exportData = data.map((item, index) => ({
+          'S.No.': index + 1,
+          'Name': item.name,
+          'Department': item.department,
+          'Login Time': item.loginTime,
+          'Logout Time': item.logoutTime,
+          'Duration': item.duration,
+          'Status': item.status
+        }));
+        filename = `${selectedMeeting.title.replace(/[^a-zA-Z0-9]/g, '_')}_Attendance_Report.xlsx`;
+        break;
+
+      default:
+        alert('Invalid export type');
+        return;
+    }
+
+    try {
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+      // Auto-fit column widths
+      const colWidths = exportData.length > 0 ? Object.keys(exportData[0]).map(key => ({
+        wch: Math.max(
+          key.length,
+          Math.max(...exportData.map(row => String(row[key] || '').length))
+        ) + 2
+      })) : [];
+      
+      worksheet['!cols'] = colWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, type === 'pretest' ? 'Pre-test Results' : 
+                                                       type === 'posttest' ? 'Post-test Results' : 
+                                                       'Attendance Report');
+
+      // Add meeting info sheet
+      const meetingInfo = [
+        { 'Meeting Details': 'Title', 'Value': selectedMeeting.title },
+        { 'Meeting Details': 'Date', 'Value': new Date(selectedMeeting.date).toLocaleDateString('en-IN') },
+        { 'Meeting Details': 'Time', 'Value': selectedMeeting.time },
+        { 'Meeting Details': 'Duration', 'Value': selectedMeeting.duration },
+        { 'Meeting Details': 'Category', 'Value': selectedMeeting.category },
+        { 'Meeting Details': 'Instructor', 'Value': selectedMeeting.instructor },
+        { 'Meeting Details': 'Status', 'Value': selectedMeeting.status },
+        { 'Meeting Details': 'Export Date', 'Value': new Date().toLocaleDateString('en-IN') },
+        { 'Meeting Details': 'Export Time', 'Value': new Date().toLocaleTimeString('en-IN') }
+      ];
+
+      const infoWorksheet = XLSX.utils.json_to_sheet(meetingInfo);
+      infoWorksheet['!cols'] = [{ wch: 20 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(workbook, infoWorksheet, 'Meeting Info');
+
+      // Write file
+      XLSX.writeFile(workbook, filename);
+
+      // Show success message
+      alert(`Data exported successfully!\nFile: ${filename}\nRecords: ${exportData.length}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
   const renderOverview = () => {
     if (!selectedMeeting) return null;
     
@@ -305,77 +409,120 @@ const MeetingStatistics: React.FC = () => {
     const attendanceStats = calculateStats(attendanceData, 'attendance');
 
     return (
-      <div className="row">
-        <div className="col-4">
-          <div className="card" style={{ textAlign: 'center', border: '1px solid var(--success-200)' }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '50%',
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+        gap: 'var(--spacing-md)' 
+      }}>
+        <div className="card" style={{ textAlign: 'center', border: '1px solid var(--success-200)' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto var(--spacing-sm) auto',
+            color: 'white'
+          }}>
+            <FileText size={24} />
+          </div>
+          <h3 style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-lg)' }}>Pre-test Results</h3>
+          <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+            <div>Average Score: {preTestStats.average}%</div>
+            <div>Total Participants: {preTestStats.total}</div>
+          </div>
+          <button
+            className="btn btn-outline"
+            style={{ 
+              fontSize: 'var(--font-xs)', 
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto var(--spacing-md) auto',
-              color: 'white'
-            }}>
-              <FileText size={30} />
-            </div>
-            <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>Pre-test Results</h3>
-            <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-              {/* <div>Completed: {preTestStats.completed}/{preTestStats.total}</div> */}
-              <div>Average Score: {preTestStats.average}%</div>
-              {/* <div>Absent: {preTestStats.absent}</div> */}
-            </div>
-          </div>
+              gap: 'var(--spacing-xs)',
+              margin: '0 auto'
+            }}
+            onClick={() => exportToExcel(preTestData, 'pretest')}
+            disabled={preTestData.length === 0}
+          >
+            <Download size={14} />
+            Export
+          </button>
         </div>
         
-        <div className="col-4">
-          <div className="card" style={{ textAlign: 'center', border: '1px solid var(--primary-200)' }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-              borderRadius: '50%',
+        <div className="card" style={{ textAlign: 'center', border: '1px solid var(--primary-200)' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto var(--spacing-sm) auto',
+            color: 'white'
+          }}>
+            <UserCheck size={24} />
+          </div>
+          <h3 style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-lg)' }}>Attendance</h3>
+          <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+            <div>Attendance Rate: {attendanceStats.attendanceRate}%</div>
+            <div>Present: {attendanceStats.present}/{attendanceStats.total}</div>
+          </div>
+          <button
+            className="btn btn-outline"
+            style={{ 
+              fontSize: 'var(--font-xs)', 
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto var(--spacing-md) auto',
-              color: 'white'
-            }}>
-              <UserCheck size={30} />
-            </div>
-            <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>Attendance</h3>
-            <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-              {/* <div>Present: {attendanceStats.present}/{attendanceStats.total}</div> */}
-              <div>Attendance Rate: {attendanceStats.attendanceRate}%</div>
-              {/* <div>Late Arrivals: {attendanceStats.late}</div> */}
-            </div>
-          </div>
+              gap: 'var(--spacing-xs)',
+              margin: '0 auto'
+            }}
+            onClick={() => exportToExcel(attendanceData, 'attendance')}
+            disabled={attendanceData.length === 0}
+          >
+            <Download size={14} />
+            Export
+          </button>
         </div>
         
-        <div className="col-4">
-          <div className="card" style={{ textAlign: 'center', border: '1px solid var(--warning-200)' }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-              borderRadius: '50%',
+        <div className="card" style={{ textAlign: 'center', border: '1px solid var(--warning-200)' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto var(--spacing-sm) auto',
+            color: 'white'
+          }}>
+            <TrendingUp size={24} />
+          </div>
+          <h3 style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-lg)' }}>Post-test Results</h3>
+          <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+            <div>Average Score: {postTestStats.average}%</div>
+            <div>Total Participants: {postTestStats.total}</div>
+          </div>
+          <button
+            className="btn btn-outline"
+            style={{ 
+              fontSize: 'var(--font-xs)', 
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto var(--spacing-md) auto',
-              color: 'white'
-            }}>
-              <TrendingUp size={30} />
-            </div>
-            <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>Post-test Results</h3>
-            <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-              {/* <div>Completed: {postTestStats.completed}/{postTestStats.total}</div> */}
-              <div>Average Score: {postTestStats.average}%</div>
-              {/* <div>Improvement: +{(parseFloat(postTestStats.average || '0') - parseFloat(preTestStats.average || '0')).toFixed(1)}%</div> */}
-            </div>
-          </div>
+              gap: 'var(--spacing-xs)',
+              margin: '0 auto'
+            }}
+            onClick={() => exportToExcel(postTestData, 'posttest')}
+            disabled={postTestData.length === 0}
+          >
+            <Download size={14} />
+            Export
+          </button>
         </div>
       </div>
     );
@@ -439,7 +586,7 @@ const MeetingStatistics: React.FC = () => {
             {title}
           </h2>
           <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', flex: '1', maxWidth: '300px' }}>
               <Search 
                 size={16} 
                 style={{ 
@@ -456,23 +603,29 @@ const MeetingStatistics: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
+                  width: '100%',
                   padding: 'var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 40px',
                   border: '1px solid var(--border-light)',
                   borderRadius: 'var(--radius-md)',
                   fontSize: 'var(--font-sm)',
-                  width: '200px'
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
-            <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+            <button 
+              className="btn btn-outline mobile-hidden" 
+              style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexShrink: 0 }}
+              onClick={() => exportToExcel(filteredData, activeView)}
+              disabled={filteredData.length === 0}
+            >
               <Download size={16} />
               Export
             </button>
           </div>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-responsive">
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-sm)' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--border-light)' }}>
                 {columns.map((column, index) => (
@@ -547,7 +700,7 @@ const MeetingStatistics: React.FC = () => {
 
   if (selectedMeeting) {
     return (
-      <div style={{ padding: 'var(--spacing-lg)' }}>
+      <div style={{ padding: 'var(--spacing-sm)' }}>
         {/* Back Button */}
         <button 
           onClick={() => {
@@ -566,11 +719,12 @@ const MeetingStatistics: React.FC = () => {
             cursor: 'pointer',
             marginBottom: 'var(--spacing-lg)',
             padding: 'var(--spacing-sm)',
-            borderRadius: 'var(--radius-md)'
+            borderRadius: 'var(--radius-md)',
+            minHeight: '44px'
           }}
         >
           <ArrowLeft size={20} />
-          Back to Meetings
+          <span>Back to Meetings</span>
         </button>
 
         {/* Meeting Header */}
@@ -578,45 +732,45 @@ const MeetingStatistics: React.FC = () => {
           <div style={{
             background: 'var(--primary-gradient)',
             borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-            padding: 'var(--spacing-xl)',
+            padding: 'var(--spacing-md)',
             color: 'white',
-            marginBottom: 'var(--spacing-lg)'
+            marginBottom: 'var(--spacing-md)'
           }}>
-            <h1 style={{ fontSize: 'var(--font-2xl)', fontWeight: 'bold', margin: '0 0 var(--spacing-sm) 0' }}>
+            <h1 style={{ fontSize: 'var(--font-xl)', fontWeight: 'bold', margin: '0 0 var(--spacing-xs) 0', lineHeight: 1.2 }}>
               {selectedMeeting.title} - Statistics
             </h1>
-            <div style={{ display: 'flex', gap: 'var(--spacing-lg)', flexWrap: 'wrap', fontSize: 'var(--font-sm)', opacity: 0.9 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <Calendar size={16} />
-                {new Date(selectedMeeting.date).toLocaleDateString('en-IN')}
+            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', fontSize: 'var(--font-sm)', opacity: 0.9 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Calendar size={14} />
+                <span>{new Date(selectedMeeting.date).toLocaleDateString('en-IN')}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <Clock size={16} />
-                {selectedMeeting.time}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Clock size={14} />
+                <span>{selectedMeeting.time}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                <Users size={16} />
-                {meetingAttendance[selectedMeeting.id] !== undefined 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Users size={14} />
+                <span>{meetingAttendance[selectedMeeting.id] !== undefined 
                             ? `${meetingAttendance[selectedMeeting.id]} attended` 
                             : `${selectedMeeting.attendees} participants`
-                          }
+                          }</span>
               </div>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div style={{ padding: '0 var(--spacing-xl) var(--spacing-lg)' }}>
+          <div style={{ padding: '0 var(--spacing-md) var(--spacing-md)' }}>
             <div style={{ 
-              display: 'flex', 
-              gap: 'var(--spacing-sm)', 
-              borderBottom: '1px solid var(--border-light)',
-              marginBottom: 'var(--spacing-lg)'
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: 'var(--spacing-xs)',
+              marginBottom: 'var(--spacing-md)'
             }}>
               {[
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
-                { id: 'pretest', label: 'Pre-test Results', icon: FileText },
+                { id: 'pretest', label: 'Pre-test', icon: FileText },
                 { id: 'attendance', label: 'Attendance', icon: UserCheck },
-                { id: 'posttest', label: 'Post-test Results', icon: TrendingUp }
+                { id: 'posttest', label: 'Post-test', icon: TrendingUp }
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -626,20 +780,23 @@ const MeetingStatistics: React.FC = () => {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 'var(--spacing-xs)',
-                      padding: 'var(--spacing-md)',
-                      border: 'none',
-                      background: 'transparent',
-                      color: activeView === tab.id ? 'var(--primary-600)' : 'var(--text-secondary)',
-                      borderBottom: activeView === tab.id ? '2px solid var(--primary-600)' : '2px solid transparent',
+                      padding: 'var(--spacing-xs)',
+                      border: activeView === tab.id ? 'none' : '1px solid var(--border-light)',
+                      background: activeView === tab.id ? 'var(--primary-gradient)' : 'transparent',
+                      color: activeView === tab.id ? 'white' : 'var(--text-secondary)',
+                      borderRadius: 'var(--radius-md)',
                       cursor: 'pointer',
-                      fontSize: 'var(--font-lg)',
+                      fontSize: 'var(--font-sm)',
                       fontWeight: activeView === tab.id ? '600' : '500',
-                      transition: 'all var(--transition-fast)'
+                      transition: 'all var(--transition-fast)',
+                      minHeight: '40px',
+                      flexDirection: 'column'
                     }}
                   >
-                    <Icon size={20} />
-                    {tab.label}
+                    <Icon size={18} />
+                    <span style={{ fontSize: 'var(--font-xs)' }}>{tab.label}</span>
                   </button>
                 );
               })}
@@ -654,28 +811,30 @@ const MeetingStatistics: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: 'var(--spacing-lg)' }}>
+    <div style={{ padding: 'var(--spacing-sm)' }}>
       {/* Header */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
         <h1 style={{
-          fontSize: 'var(--font-3xl)',
+          fontSize: 'var(--font-2xl)',
           fontWeight: 'bold',
-          margin: '0 0 var(--spacing-sm) 0',
-          color: 'var(--text-primary)'
+          margin: '0 0 var(--spacing-xs) 0',
+          color: 'var(--text-primary)',
+          lineHeight: 1.2
         }}>
           Meeting Statistics
         </h1>
         <p style={{
           color: 'var(--text-secondary)',
           margin: 0,
-          fontSize: 'var(--font-base)'
+          fontSize: 'var(--font-sm)',
+          lineHeight: 1.4
         }}>
           View detailed statistics and performance data for all training meetings
         </p>
       </div>
 
       {/* Meetings List */}
-      <div style={{ display: 'grid', gap: 'var(--spacing-md)', gridTemplateColumns: '1fr' }}>
+      <div style={{ display: 'grid', gap: 'var(--spacing-sm)', gridTemplateColumns: '1fr' }}>
         {loading ? (
           <div style={{
             textAlign: 'center',

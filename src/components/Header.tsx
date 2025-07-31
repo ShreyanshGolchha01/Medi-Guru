@@ -12,15 +12,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isSidebarOpen }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const handleLogout = () => {
-    logout();
-    setShowUserMenu(false);
+    try {
+      logout();
+      setShowUserMenu(false);
+      // Force navigation to login page after logout
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still try to navigate even if logout fails
+      window.location.href = '/login';
+    }
   };
 
   return (
     <header style={{
       background: 'var(--primary-gradient)',
       color: 'var(--text-white)',
-      padding: '0 var(--spacing-lg)',
+      padding: '0 var(--spacing-sm)',
       boxShadow: 'var(--shadow-md)',
       position: 'sticky',
       top: 0,
@@ -30,14 +38,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isSidebarOpen }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '90px',
+        height: '70px',
         maxWidth: '100%'
       }}>
         {/* Left Section */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--spacing-md)'
+          gap: 'var(--spacing-sm)',
+          flex: 1,
+          minWidth: 0
         }}>
           {/* Mobile Menu Toggle */}
           <button
@@ -52,6 +62,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isSidebarOpen }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              minWidth: '44px',
+              minHeight: '44px',
               transition: 'background-color var(--transition-fast)'
             }}
             onMouseEnter={(e) => {

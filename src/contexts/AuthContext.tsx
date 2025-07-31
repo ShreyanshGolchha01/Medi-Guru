@@ -100,6 +100,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('remember_me');
+    localStorage.removeItem('token'); // Also clear 'token' if it exists
+    
+    // Clear any other potential auth-related data
+    sessionStorage.clear();
+    
+    console.log('User logged out successfully');
   };
 
   const hasRole = (role: UserRole): boolean => {

@@ -142,21 +142,23 @@ const CreateMeeting: React.FC = () => {
 
   return (
     <div style={{
-      padding: '0 var(--spacing-2xl) var(--spacing-xl) var(--spacing-xl)',
+      padding: 'var(--spacing-sm)',
       maxWidth: '900px',
-      margin: '0 auto'
+      margin: '0 auto',
+      minHeight: '100vh'
     }}>
       {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 'var(--spacing-md)',
-        marginBottom: 'var(--spacing-xl)',
+        gap: 'var(--spacing-sm)',
+        marginBottom: 'var(--spacing-lg)',
         background: 'var(--bg-white)',
-        padding: 'var(--spacing-lg)',
+        padding: 'var(--spacing-md)',
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-sm)',
-        border: '1px solid var(--border-light)'
+        border: '1px solid var(--border-light)',
+        flexWrap: 'wrap'
       }}>
         <button
           onClick={() => navigate('/meetings')}
@@ -170,7 +172,9 @@ const CreateMeeting: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all var(--transition-fast)'
+            transition: 'all var(--transition-fast)',
+            minWidth: '44px',
+            minHeight: '44px'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'var(--bg-light)';
@@ -183,7 +187,7 @@ const CreateMeeting: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
           <h1 style={{
             margin: 0,
             fontSize: 'var(--font-xl)',
@@ -192,14 +196,16 @@ const CreateMeeting: React.FC = () => {
             background: 'var(--primary-gradient)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+            backgroundClip: 'text',
+            lineHeight: 1.2
           }}>
             Create New Meeting
           </h1>
           <p style={{
             margin: '4px 0 0 0',
             fontSize: 'var(--font-sm)',
-            color: 'var(--text-secondary)'
+            color: 'var(--text-secondary)',
+            lineHeight: 1.4
           }}>
             Schedule a new training session for medical officers
           </p>
@@ -221,7 +227,7 @@ const CreateMeeting: React.FC = () => {
         }}>
           <h2 style={{
             margin: 0,
-            fontSize: 'var(--font-2xl)',
+            fontSize: 'var(--font-xl)',
             fontWeight: '600'
           }}>
             Meeting Details
@@ -229,13 +235,14 @@ const CreateMeeting: React.FC = () => {
           <p style={{
             margin: '4px 0 0 0',
             fontSize: 'var(--font-sm)',
-            opacity: 0.9
+            opacity: 0.9,
+            lineHeight: 1.4
           }}>
             Fill in the details to create a new training meeting
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: 'var(--spacing-xl)' }}>
+        <form onSubmit={handleSubmit} style={{ padding: 'var(--spacing-lg)' }}>
           <div style={{
             display: 'grid',
             gap: 'var(--spacing-lg)'
@@ -294,7 +301,7 @@ const CreateMeeting: React.FC = () => {
             {/* Date and Time Row */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: 'var(--spacing-md)'
             }}>
               {/* Meeting Date */}
@@ -507,7 +514,8 @@ const CreateMeeting: React.FC = () => {
           {/* Action Buttons */}
           <div style={{
             display: 'flex',
-            gap: 'var(--spacing-md)',
+            flexDirection: 'column',
+            gap: 'var(--spacing-sm)',
             marginTop: 'var(--spacing-xl)',
             paddingTop: 'var(--spacing-lg)',
             borderTop: '1px solid var(--border-light)'
@@ -516,7 +524,6 @@ const CreateMeeting: React.FC = () => {
               type="submit"
               disabled={isSubmitting}
               style={{
-                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -530,7 +537,8 @@ const CreateMeeting: React.FC = () => {
                 fontWeight: '600',
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'all var(--transition-fast)',
-                opacity: isSubmitting ? 0.7 : 1
+                opacity: isSubmitting ? 0.7 : 1,
+                minHeight: '48px'
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting) {
@@ -554,7 +562,7 @@ const CreateMeeting: React.FC = () => {
               onClick={handleReset}
               disabled={isSubmitting}
               style={{
-                padding: 'var(--spacing-md) var(--spacing-lg)',
+                padding: 'var(--spacing-md)',
                 background: 'var(--bg-white)',
                 color: 'var(--text-secondary)',
                 border: '2px solid var(--border-medium)',
@@ -563,7 +571,8 @@ const CreateMeeting: React.FC = () => {
                 fontWeight: '600',
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'all var(--transition-fast)',
-                opacity: isSubmitting ? 0.5 : 1
+                opacity: isSubmitting ? 0.5 : 1,
+                minHeight: '48px'
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting) {

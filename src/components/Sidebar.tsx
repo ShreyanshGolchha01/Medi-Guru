@@ -95,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Overlay for mobile only - conditionally render based on screen size */}
       {isOpen && (
         <div
           style={{
@@ -104,9 +104,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             left: 0,
             width: '100%',
             height: '100%',
-            background: 'var(--bg-overlay)',
-            zIndex: 998
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 998,
+            display: 'none' // Hidden by default
           }}
+          className="mobile-overlay" // Add class for CSS media queries
           onClick={onClose}
         />
       )}
@@ -293,8 +295,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         }}>
           <button
             onClick={() => {
-              logout();
-              onClose();
+              console.log('Logout button clicked');
+              try {
+                // First close the sidebar
+                onClose();
+                
+                // Then logout
+                logout();
+                
+                // Force page reload to ensure clean state
+                setTimeout(() => {
+                  window.location.replace('/login');
+                }, 50);
+                
+              } catch (error) {
+                console.error('Logout error:', error);
+                // Force navigation even if logout fails
+                window.location.replace('/login');
+              }
             }}
             style={{
               width: '100%',
@@ -310,7 +328,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               borderRadius: 'var(--radius-md)',
               fontSize: 'var(--font-sm)',
               fontWeight: '500',
-              transition: 'all var(--transition-fast)'
+              transition: 'all var(--transition-fast)',
+              touchAction: 'manipulation', // Better mobile touch handling
+              minHeight: '44px' // Minimum touch target size for mobile
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
