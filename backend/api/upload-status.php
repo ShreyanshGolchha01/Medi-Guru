@@ -38,6 +38,7 @@ try {
             pre_url,
             attend_url,
             post_url,
+            registered_url,
             created_at
         FROM files 
         WHERE m_id = ?
@@ -46,6 +47,10 @@ try {
     $fileRecord = $stmt->fetch();
     
     // Also check actual data counts
+    $registeredStmt = $pdo->prepare("SELECT COUNT(*) as count FROM registered WHERE m_id = ?");
+    $registeredStmt->execute([$meetingId]);
+    $registeredCount = $registeredStmt->fetch()['count'];
+    
     $attendanceStmt = $pdo->prepare("SELECT COUNT(*) as count FROM meeting_attendance WHERE meeting_id = ?");
     $attendanceStmt->execute([$meetingId]);
     $attendanceCount = $attendanceStmt->fetch()['count'];
@@ -60,6 +65,7 @@ try {
     
     // Determine status for each file type
     $status = [
+        'registeredParticipants' => $registeredCount > 0 ? 'uploaded' : 'pending',
         'preTest' => $pretestCount > 0 ? 'uploaded' : 'not-required',
         'attendance' => $attendanceCount > 0 ? 'uploaded' : 'pending',
         'postTest' => $posttestCount > 0 ? 'uploaded' : 'not-required'
@@ -68,6 +74,13 @@ try {
     // Add file information if available
     $fileInfo = [];
     if ($fileRecord) {
+        if ($fileRecord['registered_url']) {
+            $fileInfo['registered'] = [
+                'filename' => $fileRecord['registered_url'],
+                'uploaded_at' => $fileRecord['created_at'],
+                'record_count' => $registeredCount
+            ];
+        }
         if ($fileRecord['pre_url']) {
             $fileInfo['pretest'] = [
                 'filename' => $fileRecord['pre_url'],
@@ -97,6 +110,7 @@ try {
         'upload_status' => $status,
         'file_info' => $fileInfo,
         'summary' => [
+            'registered_count' => $registeredCount,
             'attendance_count' => $attendanceCount,
             'pretest_count' => $pretestCount,
             'posttest_count' => $posttestCount

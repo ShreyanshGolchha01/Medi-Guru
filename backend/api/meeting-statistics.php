@@ -32,12 +32,52 @@ if (!$meetingId) {
     sendError('Meeting ID is required', 400);
 }
 
-if (!in_array($type, ['pretest', 'posttest', 'attendance'])) {
-    sendError('Invalid type. Must be pretest, posttest, or attendance', 400);
+if (!in_array($type, ['registered', 'pretest', 'posttest', 'attendance'])) {
+    sendError('Invalid type. Must be registered, pretest, posttest, or attendance', 400);
 }
 
 try {
     switch ($type) {
+        case 'registered':
+            $stmt = $pdo->prepare("
+                SELECT 
+                    name,
+                    designation,
+                    block,
+                    phone
+                FROM registered 
+                WHERE m_id = ?
+                ORDER BY name ASC
+            ");
+            $stmt->execute([$meetingId]);
+            $data = $stmt->fetchAll();
+            
+            // Format data for frontend
+            $formattedData = array_map(function($row) {
+                return [
+                    'name' => $row['name'],
+                    'department' => $row['designation'], // Using designation as department
+                    'designation' => $row['designation'],
+                    'block' => $row['block'],
+                    'phone' => $row['phone'],
+                    'status' => 'registered' // Default status
+                ];
+            }, $data);
+            
+            // Calculate statistics
+            $totalRegistered = count($formattedData);
+            
+            $response = [
+                'success' => true,
+                'type' => 'registered',
+                'meeting_id' => $meetingId,
+                'data' => $formattedData,
+                'statistics' => [
+                    'total_registered' => $totalRegistered
+                ]
+            ];
+            break;
+            
         case 'pretest':
             $stmt = $pdo->prepare("
                 SELECT 

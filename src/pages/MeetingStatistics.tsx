@@ -40,6 +40,18 @@ interface ParticipantScore {
   status: 'completed' | 'pending' | 'absent';
 }
 
+interface RegisteredParticipant {
+  id: string;
+  name: string;
+  department: string;
+  designation: string;
+  block: string;
+  email?: string;
+  phone?: string;
+  registrationDate: string;
+  status: 'registered' | 'confirmed' | 'cancelled';
+}
+
 interface AttendanceRecord {
   id: string;
   name: string;
@@ -50,7 +62,7 @@ interface AttendanceRecord {
   status: 'present' | 'absent' | 'late';
 }
 
-type StatisticsView = 'overview' | 'pretest' | 'posttest' | 'attendance';
+type StatisticsView = 'overview' | 'registered' | 'pretest' | 'posttest' | 'attendance';
 
 const MeetingStatistics: React.FC = () => {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
@@ -60,10 +72,12 @@ const MeetingStatistics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [meetingAttendance, setMeetingAttendance] = useState<{[key: string]: number}>({});
   const [statisticsData, setStatisticsData] = useState<{
+    registered: any[];
     pretest: any[];
     posttest: any[];
     attendance: any[];
   }>({
+    registered: [],
     pretest: [],
     posttest: [],
     attendance: []
@@ -76,7 +90,7 @@ const MeetingStatistics: React.FC = () => {
     const fetchMeetings = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`${serverUrl}meetings.php`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -145,10 +159,16 @@ const MeetingStatistics: React.FC = () => {
   const fetchAllStatistics = async (meetingId: string) => {
     setStatisticsLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       
-      // Fetch all three types of data in parallel
-      const [pretestResponse, posttestResponse, attendanceResponse] = await Promise.all([
+      // Fetch all four types of data in parallel
+      const [registeredResponse, pretestResponse, posttestResponse, attendanceResponse] = await Promise.all([
+        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=registered`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }),
         fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=pretest`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -169,17 +189,20 @@ const MeetingStatistics: React.FC = () => {
         })
       ]);
 
+      const registeredData = registeredResponse.ok ? await registeredResponse.json() : { data: [] };
       const pretestData = pretestResponse.ok ? await pretestResponse.json() : { data: [] };
       const posttestData = posttestResponse.ok ? await posttestResponse.json() : { data: [] };
       const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : { data: [] };
 
       console.log('Statistics API responses:', {
+        registered: registeredData,
         pretest: pretestData,
         posttest: posttestData,
         attendance: attendanceData
       });
 
       setStatisticsData({
+        registered: registeredData.data || [],
         pretest: pretestData.data || [],
         posttest: posttestData.data || [],
         attendance: attendanceData.data || []
@@ -192,6 +215,23 @@ const MeetingStatistics: React.FC = () => {
   };
 
   // Update the get data functions to use actual data
+  const getRegisteredData = (meetingId: string): RegisteredParticipant[] => {
+    if (!statisticsData.registered || !Array.isArray(statisticsData.registered)) {
+      return [];
+    }
+    return statisticsData.registered.map((item, index) => ({
+      id: `registered-${index}`,
+      name: item.name || 'Unknown',
+      department: item.department || item.designation || 'Unknown',
+      designation: item.designation || 'Unknown',
+      block: item.block || 'N/A',
+      email: item.email || '',
+      phone: item.phone || 'N/A',
+      registrationDate: item.registration_date ? new Date(item.registration_date).toLocaleDateString('en-IN') : '--',
+      status: item.status || 'registered' as const
+    }));
+  };
+
   const getPreTestData = (meetingId: string): ParticipantScore[] => {
     if (!statisticsData.pretest || !Array.isArray(statisticsData.pretest)) {
       return [];
@@ -291,6 +331,18 @@ const MeetingStatistics: React.FC = () => {
     let filename = '';
 
     switch (type) {
+      case 'registered':
+        exportData = data.map((item, index) => ({
+          'S.No.': index + 1,
+          'Name': item.name,
+          'Designation': item.designation,
+          'Block': item.block,
+          'Phone': item.phone || 'N/A',
+          'Status': item.status
+        }));
+        filename = `${selectedMeeting.title.replace(/[^a-zA-Z0-9]/g, '_')}_Registered_Participants.xlsx`;
+        break;
+
       case 'pretest':
         exportData = data.map((item, index) => ({
           'S.No.': index + 1,
@@ -351,7 +403,8 @@ const MeetingStatistics: React.FC = () => {
       worksheet['!cols'] = colWidths;
 
       // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, type === 'pretest' ? 'Pre-test Results' : 
+      XLSX.utils.book_append_sheet(workbook, worksheet, type === 'registered' ? 'Registered Participants' :
+                                                       type === 'pretest' ? 'Pre-test Results' : 
                                                        type === 'posttest' ? 'Post-test Results' : 
                                                        'Attendance Report');
 
@@ -400,10 +453,12 @@ const MeetingStatistics: React.FC = () => {
       );
     }
     
+    const registeredData = getRegisteredData(selectedMeeting.id);
     const preTestData = getPreTestData(selectedMeeting.id);
     const postTestData = getPostTestData(selectedMeeting.id);
     const attendanceData = getAttendanceData(selectedMeeting.id);
     
+    const registeredStats = { total: registeredData.length, confirmed: registeredData.filter(p => p.status === 'confirmed').length };
     const preTestStats = calculateStats(preTestData, 'score');
     const postTestStats = calculateStats(postTestData, 'score');
     const attendanceStats = calculateStats(attendanceData, 'attendance');
@@ -414,6 +469,42 @@ const MeetingStatistics: React.FC = () => {
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
         gap: 'var(--spacing-md)' 
       }}>
+        <div className="card" style={{ textAlign: 'center', border: '1px solid var(--info-200)' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            background: 'linear-gradient(135deg, #43cea2 0%, #185a9d 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto var(--spacing-sm) auto',
+            color: 'white'
+          }}>
+            <Users size={24} />
+          </div>
+          <h3 style={{ margin: '0 0 var(--spacing-xs) 0', fontSize: 'var(--font-lg)' }}>Registered Participants</h3>
+          <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+            <div>Total Registered: {registeredStats.total}</div>
+            <div>Confirmed: {registeredStats.confirmed}</div>
+          </div>
+          <button
+            className="btn btn-outline"
+            style={{ 
+              fontSize: 'var(--font-xs)', 
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-xs)',
+              margin: '0 auto'
+            }}
+            onClick={() => exportToExcel(registeredData, 'registered')}
+            disabled={registeredData.length === 0}
+          >
+            <Download size={14} />
+            Export
+          </button>
+        </div>
         <div className="card" style={{ textAlign: 'center', border: '1px solid var(--success-200)' }}>
           <div style={{
             width: '50px',
@@ -552,6 +643,11 @@ const MeetingStatistics: React.FC = () => {
     let columns: string[] = [];
 
     switch (activeView) {
+      case 'registered':
+        data = getRegisteredData(selectedMeeting.id);
+        title = 'Registered Participants';
+        columns = ['Name', 'Designation', 'Block', 'Phone'];
+        break;
       case 'pretest':
         data = getPreTestData(selectedMeeting.id);
         title = 'Pre-test Results';
@@ -569,10 +665,18 @@ const MeetingStatistics: React.FC = () => {
         break;
     }
 
-    const filteredData = data.filter(item =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.department.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredData = data.filter(item => {
+      const searchLower = searchTerm.toLowerCase();
+      if (activeView === 'registered') {
+        return item.name.toLowerCase().includes(searchLower) ||
+               (item.designation && item.designation.toLowerCase().includes(searchLower)) ||
+               (item.block && item.block.toLowerCase().includes(searchLower)) ||
+               (item.phone && item.phone.toLowerCase().includes(searchLower));
+      } else {
+        return item.name.toLowerCase().includes(searchLower) ||
+               item.department.toLowerCase().includes(searchLower);
+      }
+    });
 
     return (
       <div className="card">
@@ -650,15 +754,29 @@ const MeetingStatistics: React.FC = () => {
                   <td style={{ padding: 'var(--spacing-md)', fontWeight: '500' }}>
                     {item.name}
                   </td>
-                  <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                    {item.department}
-                  </td>
+                  {activeView === 'registered' ? (
+                    <>
+                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        {item.designation || item.department}
+                      </td>
+                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        {item.block || 'N/A'}
+                      </td>
+                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        {item.phone || 'N/A'}
+                      </td>
+                    </>
+                  ) : (
+                    <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                      {item.department}
+                    </td>
+                  )}
                   {activeView === 'attendance' && (
                     <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
                       {item.loginTime}
                     </td>
                   )}
-                  {activeView !== 'attendance' && (
+                  {(activeView === 'pretest' || activeView === 'posttest') && (
                     <td style={{ padding: 'var(--spacing-md)' }}>
                       <span style={{ 
                         fontWeight: '600',
@@ -768,6 +886,7 @@ const MeetingStatistics: React.FC = () => {
             }}>
               {[
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
+                { id: 'registered', label: 'Registered', icon: Users },
                 { id: 'pretest', label: 'Pre-test', icon: FileText },
                 { id: 'attendance', label: 'Attendance', icon: UserCheck },
                 { id: 'posttest', label: 'Post-test', icon: TrendingUp }

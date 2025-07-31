@@ -13,7 +13,8 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
-  Info
+  Info,
+  Users
 } from 'lucide-react';
 
 interface Meeting {
@@ -32,6 +33,7 @@ interface Meeting {
 }
 
 interface UploadStatus {
+  registeredParticipants: 'pending' | 'uploaded' | 'not-required';
   preTest: 'pending' | 'uploaded' | 'not-required';
   attendance: 'pending' | 'uploaded' | 'not-required';
   postTest: 'pending' | 'uploaded' | 'not-required';
@@ -41,15 +43,17 @@ const Meetings: React.FC = () => {
   const { user } = useAuth();
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [uploadFiles, setUploadFiles] = useState<{
+    registeredParticipants: File | null;
     pretest: File | null;
     attendance: File | null;
     posttest: File | null;
   }>({
+    registeredParticipants: null,
     pretest: null,
     attendance: null,
     posttest: null
   });
-  const [uploadType, setUploadType] = useState<'pretest' | 'attendance' | 'posttest' | null>(null);
+  const [uploadType, setUploadType] = useState<'registeredParticipants' | 'pretest' | 'attendance' | 'posttest' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
   
@@ -156,7 +160,12 @@ const Meetings: React.FC = () => {
     fetchUploadStatus(meetingId);
     
     // Return default status while loading
-    return { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' };
+    return { 
+      registeredParticipants: 'pending', 
+      preTest: 'not-required', 
+      attendance: 'pending', 
+      postTest: 'not-required' 
+    };
   };
 
   const getStatusColor = (status: string) => {
@@ -177,7 +186,7 @@ const Meetings: React.FC = () => {
     }
   };
 
-  const handleFileUpload = async (type: 'pretest' | 'attendance' | 'posttest') => {
+  const handleFileUpload = async (type: 'registeredParticipants' | 'pretest' | 'attendance' | 'posttest') => {
     const file = uploadFiles[type];
     if (!file || !selectedMeeting) return;
     
@@ -212,7 +221,7 @@ const Meetings: React.FC = () => {
         },
         body: JSON.stringify({
           meetingId: selectedMeeting.id,
-          type: type,
+          type: type === 'registeredParticipants' ? 'registered' : type,
           data: jsonData,
           fileName: file.name
         })
@@ -231,7 +240,9 @@ const Meetings: React.FC = () => {
         await fetchUploadStatus(selectedMeeting.id);
         
         // Show success message with details
-        let message = `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!\n`;
+        const displayType = type === 'registeredParticipants' ? 'Registered Participants' : 
+                           type.charAt(0).toUpperCase() + type.slice(1);
+        let message = `${displayType} uploaded successfully!\n`;
         message += `Processed: ${result.processed_count}/${result.total_count} records`;
         
         if (result.errors && result.errors.length > 0) {
@@ -435,333 +446,473 @@ const Meetings: React.FC = () => {
           </h2>
 
           <div className="row">
-            {/* Pre-test Upload */}
-            <div className="col-4">
+            {/* Registered Participants Upload */}
+            <div className="col-3">
               <div style={{
                 padding: 'var(--spacing-lg)',
                 border: '1px solid var(--border-light)',
                 borderRadius: 'var(--radius-lg)',
                 textAlign: 'center',
-                background: uploadStatus.preTest === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)'
+                background: uploadStatus.registeredParticipants === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)',
+                minHeight: '400px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}>
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto var(--spacing-md) auto',
-                  color: 'white'
-                }}>
-                  <FileText size={30} />
-                </div>
-                <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
-                  Pre-test Data
-                </h3>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 'var(--spacing-xs)',
-                  marginBottom: 'var(--spacing-md)',
-                  fontSize: 'var(--font-sm)'
-                }}>
-                  {getUploadStatusIcon('not-required')}
-                  <span style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>
-                    Optional - Upload if Available
-                  </span>
+                <div>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    background: 'linear-gradient(135deg, #43cea2 0%, #185a9d 100%)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto var(--spacing-md) auto',
+                    color: 'white'
+                  }}>
+                    <Users size={30} />
+                  </div>
+                  <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
+                    Registered Participants
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 'var(--spacing-xs)',
+                    marginBottom: 'var(--spacing-md)',
+                    fontSize: 'var(--font-sm)',
+                    minHeight: '20px'
+                  }}>
+                    {getUploadStatusIcon(uploadStatus.registeredParticipants)}
+                    <span style={{
+                      color: uploadStatus.registeredParticipants === 'uploaded' ? 'var(--success-600)' :
+                             uploadStatus.registeredParticipants === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)',
+                      fontWeight: '700',
+                      fontSize: 'var(--font-sm)'
+                    }}>
+                      MANDATORY - {getUploadStatusText(uploadStatus.registeredParticipants)} - REQUIRED
+                    </span>
+                  </div>
                 </div>
                 
-                {/* Optional upload section - always available */}
-                <div style={{
-                  position: 'relative',
-                  marginBottom: 'var(--spacing-md)',
-                  overflow: 'hidden'
-                }}>
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    onChange={(e) => setUploadFiles(prev => ({
-                      ...prev,
-                      pretest: e.target.files?.[0] || null
-                    }))}
+                <div>
+                  <div style={{
+                    position: 'relative',
+                    marginBottom: 'var(--spacing-md)',
+                    overflow: 'hidden'
+                  }}>
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={(e) => setUploadFiles(prev => ({
+                        ...prev,
+                        registeredParticipants: e.target.files?.[0] || null
+                      }))}
+                      style={{
+                        position: 'absolute',
+                        left: '-9999px',
+                        opacity: 0
+                      }}
+                      id="registered-participants-file-input"
+                    />
+                    <label
+                      htmlFor="registered-participants-file-input"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 'var(--spacing-xs)',
+                        width: '100%',
+                        padding: 'var(--spacing-sm) var(--spacing-md)',
+                        background: 'var(--bg-white)',
+                        border: '2px dashed var(--border-medium)',
+                        borderRadius: 'var(--radius-md)',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
+                        fontSize: 'var(--font-sm)',
+                        color: 'var(--text-secondary)',
+                        textAlign: 'center',
+                        minHeight: '50px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                        e.currentTarget.style.color = 'var(--primary-dark)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-medium)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                      }}
+                    >
+                      <Upload size={16} />
+                      {uploadFiles.registeredParticipants?.name || 'Choose Excel/CSV File (MANDATORY)'}
+                    </label>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleFileUpload('registeredParticipants')}
+                    disabled={!uploadFiles.registeredParticipants || uploading}
                     style={{
-                      position: 'absolute',
-                      left: '-9999px',
-                      opacity: 0
-                    }}
-                    id="pretest-file-input"
-                  />
-                  <label
-                    htmlFor="pretest-file-input"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 'var(--spacing-xs)',
                       width: '100%',
-                      padding: 'var(--spacing-sm) var(--spacing-md)',
-                      background: 'var(--bg-white)',
-                      border: '2px dashed var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      cursor: 'pointer',
-                      transition: 'all var(--transition-fast)',
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--text-secondary)',
-                      textAlign: 'center',
-                      minHeight: '50px'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--primary-dark)';
-                      e.currentTarget.style.backgroundColor = 'var(--bg-light)';
-                      e.currentTarget.style.color = 'var(--primary-dark)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border-medium)';
-                      e.currentTarget.style.backgroundColor = 'var(--bg-white)';
-                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      opacity: (!uploadFiles.registeredParticipants || uploading) ? 0.6 : 1
                     }}
                   >
-                    <Upload size={16} />
-                    {uploadFiles.pretest?.name || 'Choose Excel/CSV File (Optional)'}
-                  </label>
+                    {uploading && uploadType === 'registeredParticipants' ? 'Uploading...' : 'Upload Participants (REQUIRED)'}
+                  </button>
                 </div>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleFileUpload('pretest')}
-                  disabled={!uploadFiles.pretest || uploading}
-                  style={{
-                    width: '100%',
-                    opacity: (!uploadFiles.pretest || uploading) ? 0.6 : 1
-                  }}
-                >
-                  {uploading && uploadType === 'pretest' ? 'Uploading...' : 'Upload Pre-test (Optional)'}
-                </button>
+              </div>
+            </div>
+
+            {/* Pre-test Upload */}
+            <div className="col-3">
+              <div style={{
+                padding: 'var(--spacing-lg)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 'var(--radius-lg)',
+                textAlign: 'center',
+                background: uploadStatus.preTest === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)',
+                minHeight: '400px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto var(--spacing-md) auto',
+                    color: 'white'
+                  }}>
+                    <FileText size={30} />
+                  </div>
+                  <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
+                    Pre-test Data
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 'var(--spacing-xs)',
+                    marginBottom: 'var(--spacing-md)',
+                    fontSize: 'var(--font-sm)',
+                    minHeight: '20px'
+                  }}>
+                    {getUploadStatusIcon('not-required')}
+                    <span style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>
+                      Optional - Upload if Available
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  <div style={{
+                    position: 'relative',
+                    marginBottom: 'var(--spacing-md)',
+                    overflow: 'hidden'
+                  }}>
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={(e) => setUploadFiles(prev => ({
+                        ...prev,
+                        pretest: e.target.files?.[0] || null
+                      }))}
+                      style={{
+                        position: 'absolute',
+                        left: '-9999px',
+                        opacity: 0
+                      }}
+                      id="pretest-file-input"
+                    />
+                    <label
+                      htmlFor="pretest-file-input"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 'var(--spacing-xs)',
+                        width: '100%',
+                        padding: 'var(--spacing-sm) var(--spacing-md)',
+                        background: 'var(--bg-white)',
+                        border: '2px dashed var(--border-medium)',
+                        borderRadius: 'var(--radius-md)',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
+                        fontSize: 'var(--font-sm)',
+                        color: 'var(--text-secondary)',
+                        textAlign: 'center',
+                        minHeight: '50px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                        e.currentTarget.style.color = 'var(--primary-dark)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-medium)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                      }}
+                    >
+                      <Upload size={16} />
+                      {uploadFiles.pretest?.name || 'Choose Excel/CSV File (Optional)'}
+                    </label>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleFileUpload('pretest')}
+                    disabled={!uploadFiles.pretest || uploading}
+                    style={{
+                      width: '100%',
+                      opacity: (!uploadFiles.pretest || uploading) ? 0.6 : 1
+                    }}
+                  >
+                    {uploading && uploadType === 'pretest' ? 'Uploading...' : 'Upload Pre-test (Optional)'}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Attendance Upload */}
-            <div className="col-4">
+            <div className="col-3">
               <div style={{
                 padding: 'var(--spacing-lg)',
                 border: '1px solid var(--border-light)',
                 borderRadius: 'var(--radius-lg)',
                 textAlign: 'center',
-                background: uploadStatus.attendance === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)'
+                background: uploadStatus.attendance === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)',
+                minHeight: '400px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}>
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto var(--spacing-md) auto',
-                  color: 'white'
-                }}>
-                  <UserCheck size={30} />
-                </div>
-                <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
-                  Attendance Data
-                </h3>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 'var(--spacing-xs)',
-                  marginBottom: 'var(--spacing-md)',
-                  fontSize: 'var(--font-sm)'
-                }}>
-                  {getUploadStatusIcon(uploadStatus.attendance)}
-                  <span style={{
-                    color: uploadStatus.attendance === 'uploaded' ? 'var(--success-600)' :
-                           uploadStatus.attendance === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)',
-                    fontWeight: '700',
-                    fontSize: 'var(--font-sm)'
+                <div>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto var(--spacing-md) auto',
+                    color: 'white'
                   }}>
-                    {uploadStatus.attendance === 'pending' && ' MANDATORY - '}
-                    {getUploadStatusText(uploadStatus.attendance)}
-                    {uploadStatus.attendance === 'pending' && ' - REQUIRED'}
-                  </span>
-                </div>
-                {uploadStatus.attendance !== 'not-required' && (
-                  <>
-                    <div style={{
-                      position: 'relative',
-                      marginBottom: 'var(--spacing-md)',
-                      overflow: 'hidden'
+                    <UserCheck size={30} />
+                  </div>
+                  <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
+                    Attendance Data
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 'var(--spacing-xs)',
+                    marginBottom: 'var(--spacing-md)',
+                    fontSize: 'var(--font-sm)',
+                    minHeight: '20px'
+                  }}>
+                    {getUploadStatusIcon(uploadStatus.attendance)}
+                    <span style={{
+                      color: uploadStatus.attendance === 'uploaded' ? 'var(--success-600)' :
+                             uploadStatus.attendance === 'pending' ? 'var(--warning-600)' : 'var(--gray-500)',
+                      fontWeight: '700',
+                      fontSize: 'var(--font-sm)'
                     }}>
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        onChange={(e) => setUploadFiles(prev => ({
-                          ...prev,
-                          attendance: e.target.files?.[0] || null
-                        }))}
-                        style={{
-                          position: 'absolute',
-                          left: '-9999px',
-                          opacity: 0
-                        }}
-                        id="attendance-file-input"
-                      />
-                      <label
-                        htmlFor="attendance-file-input"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 'var(--spacing-xs)',
-                          width: '100%',
-                          padding: 'var(--spacing-sm) var(--spacing-md)',
-                          background: 'var(--bg-white)',
-                          border: '2px dashed var(--border-medium)',
-                          borderRadius: 'var(--radius-md)',
-                          cursor: 'pointer',
-                          transition: 'all var(--transition-fast)',
-                          fontSize: 'var(--font-sm)',
-                          color: 'var(--text-secondary)',
-                          textAlign: 'center',
-                          minHeight: '50px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--primary-dark)';
-                          e.currentTarget.style.backgroundColor = 'var(--bg-light)';
-                          e.currentTarget.style.color = 'var(--primary-dark)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--border-medium)';
-                          e.currentTarget.style.backgroundColor = 'var(--bg-white)';
-                          e.currentTarget.style.color = 'var(--text-secondary)';
-                        }}
-                      >
-                        <Upload size={16} />
-                        {uploadFiles.attendance?.name || 'Choose Excel/CSV File (MANDATORY)'}
-                      </label>
-                    </div>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleFileUpload('attendance')}
-                      disabled={!uploadFiles.attendance || uploading}
+                      MANDATORY - {getUploadStatusText(uploadStatus.attendance)} - REQUIRED
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  <div style={{
+                    position: 'relative',
+                    marginBottom: 'var(--spacing-md)',
+                    overflow: 'hidden'
+                  }}>
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={(e) => setUploadFiles(prev => ({
+                        ...prev,
+                        attendance: e.target.files?.[0] || null
+                      }))}
                       style={{
+                        position: 'absolute',
+                        left: '-9999px',
+                        opacity: 0
+                      }}
+                      id="attendance-file-input"
+                    />
+                    <label
+                      htmlFor="attendance-file-input"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 'var(--spacing-xs)',
                         width: '100%',
-                        opacity: (!uploadFiles.attendance || uploading) ? 0.6 : 1
+                        padding: 'var(--spacing-sm) var(--spacing-md)',
+                        background: 'var(--bg-white)',
+                        border: '2px dashed var(--border-medium)',
+                        borderRadius: 'var(--radius-md)',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
+                        fontSize: 'var(--font-sm)',
+                        color: 'var(--text-secondary)',
+                        textAlign: 'center',
+                        minHeight: '50px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                        e.currentTarget.style.color = 'var(--primary-dark)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-medium)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
                       }}
                     >
-                      {uploading && uploadType === 'attendance' ? 'Uploading...' : 'Upload Attendance (REQUIRED)'}
-                    </button>
-                  </>
-                )}
+                      <Upload size={16} />
+                      {uploadFiles.attendance?.name || 'Choose Excel/CSV File (MANDATORY)'}
+                    </label>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleFileUpload('attendance')}
+                    disabled={!uploadFiles.attendance || uploading}
+                    style={{
+                      width: '100%',
+                      opacity: (!uploadFiles.attendance || uploading) ? 0.6 : 1
+                    }}
+                  >
+                    {uploading && uploadType === 'attendance' ? 'Uploading...' : 'Upload Attendance (REQUIRED)'}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Post-test Upload */}
-            <div className="col-4">
+            <div className="col-3">
               <div style={{
                 padding: 'var(--spacing-lg)',
                 border: '1px solid var(--border-light)',
                 borderRadius: 'var(--radius-lg)',
                 textAlign: 'center',
-                background: uploadStatus.postTest === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)'
+                background: uploadStatus.postTest === 'uploaded' ? 'var(--success-50)' : 'var(--background-white)',
+                minHeight: '400px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}>
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto var(--spacing-md) auto',
-                  color: 'white'
-                }}>
-                  <TrendingUp size={30} />
-                </div>
-                <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
-                  Post-test Data
-                </h3>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 'var(--spacing-xs)',
-                  marginBottom: 'var(--spacing-md)',
-                  fontSize: 'var(--font-sm)'
-                }}>
-                  {getUploadStatusIcon('not-required')}
-                  <span style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>
-                    Optional - Upload if Available
-                  </span>
+                <div>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto var(--spacing-md) auto',
+                    color: 'white'
+                  }}>
+                    <TrendingUp size={30} />
+                  </div>
+                  <h3 style={{ margin: '0 0 var(--spacing-sm) 0', fontSize: 'var(--font-lg)' }}>
+                    Post-test Data
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 'var(--spacing-xs)',
+                    marginBottom: 'var(--spacing-md)',
+                    fontSize: 'var(--font-sm)',
+                    minHeight: '20px'
+                  }}>
+                    {getUploadStatusIcon('not-required')}
+                    <span style={{ color: 'var(--gray-500)', fontStyle: 'italic' }}>
+                      Optional - Upload if Available
+                    </span>
+                  </div>
                 </div>
                 
-                {/* Optional upload section - always available */}
-                <div style={{
-                  position: 'relative',
-                  marginBottom: 'var(--spacing-md)',
-                  overflow: 'hidden'
-                }}>
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    onChange={(e) => setUploadFiles(prev => ({
-                      ...prev,
-                      posttest: e.target.files?.[0] || null
-                    }))}
+                <div>
+                  <div style={{
+                    position: 'relative',
+                    marginBottom: 'var(--spacing-md)',
+                    overflow: 'hidden'
+                  }}>
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={(e) => setUploadFiles(prev => ({
+                        ...prev,
+                        posttest: e.target.files?.[0] || null
+                      }))}
+                      style={{
+                        position: 'absolute',
+                        left: '-9999px',
+                        opacity: 0
+                      }}
+                      id="posttest-file-input"
+                    />
+                    <label
+                      htmlFor="posttest-file-input"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 'var(--spacing-xs)',
+                        width: '100%',
+                        padding: 'var(--spacing-sm) var(--spacing-md)',
+                        background: 'var(--bg-white)',
+                        border: '2px dashed var(--border-medium)',
+                        borderRadius: 'var(--radius-md)',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
+                        fontSize: 'var(--font-sm)',
+                        color: 'var(--text-secondary)',
+                        textAlign: 'center',
+                        minHeight: '50px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--primary-dark)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-light)';
+                        e.currentTarget.style.color = 'var(--primary-dark)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-medium)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-white)';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                      }}
+                    >
+                      <Upload size={16} />
+                      {uploadFiles.posttest?.name || 'Choose Excel/CSV File (Optional)'}
+                    </label>
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleFileUpload('posttest')}
+                    disabled={!uploadFiles.posttest || uploading}
                     style={{
-                      position: 'absolute',
-                      left: '-9999px',
-                      opacity: 0
-                    }}
-                    id="posttest-file-input"
-                  />
-                  <label
-                    htmlFor="posttest-file-input"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 'var(--spacing-xs)',
                       width: '100%',
-                      padding: 'var(--spacing-sm) var(--spacing-md)',
-                      background: 'var(--bg-white)',
-                      border: '2px dashed var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      cursor: 'pointer',
-                      transition: 'all var(--transition-fast)',
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--text-secondary)',
-                      textAlign: 'center',
-                      minHeight: '50px'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--primary-dark)';
-                      e.currentTarget.style.backgroundColor = 'var(--bg-light)';
-                      e.currentTarget.style.color = 'var(--primary-dark)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border-medium)';
-                      e.currentTarget.style.backgroundColor = 'var(--bg-white)';
-                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      opacity: (!uploadFiles.posttest || uploading) ? 0.6 : 1
                     }}
                   >
-                    <Upload size={16} />
-                    {uploadFiles.posttest?.name || 'Choose Excel/CSV File (Optional)'}
-                  </label>
+                    {uploading && uploadType === 'posttest' ? 'Uploading...' : 'Upload Post-test (Optional)'}
+                  </button>
                 </div>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleFileUpload('posttest')}
-                  disabled={!uploadFiles.posttest || uploading}
-                  style={{
-                    width: '100%',
-                    opacity: (!uploadFiles.posttest || uploading) ? 0.6 : 1
-                  }}
-                >
-                  {uploading && uploadType === 'posttest' ? 'Uploading...' : 'Upload Post-test (Optional)'}
-                </button>
               </div>
             </div>
           </div>

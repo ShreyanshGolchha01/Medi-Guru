@@ -37,8 +37,8 @@ if (!$meetingId || !$fileType || empty($data)) {
     sendError('Invalid parameters. meetingId, type, and data are required.', 400);
 }
 
-if (!in_array($fileType, ['pretest', 'attendance', 'posttest'])) {
-    sendError('Invalid file type. Must be pretest, attendance, or posttest.', 400);
+if (!in_array($fileType, ['pretest', 'attendance', 'posttest', 'registered'])) {
+    sendError('Invalid file type. Must be pretest, attendance, posttest, or registered.', 400);
 }
 
 try {
@@ -62,6 +62,45 @@ try {
     
     // Process data based on file type
     switch ($fileType) {
+        case 'registered':
+            // Clear existing registered participants for this meeting
+            $deleteStmt = $pdo->prepare("DELETE FROM registered WHERE m_id = ?");
+            $deleteStmt->execute([$meetingId]);
+            
+            foreach ($data as $index => $row) {
+                try {
+                    $name = trim($row['Name'] ?? $row['name'] ?? $row['participant_name'] ?? '');
+                    $designation = trim($row['Designation'] ?? $row['designation'] ?? $row['Department'] ?? $row['department'] ?? '');
+                    $block = trim($row['Block'] ?? $row['block'] ?? $row['Location'] ?? $row['location'] ?? '');
+                    $phone = trim($row['Phone'] ?? $row['phone'] ?? $row['mobile'] ?? $row['Mobile'] ?? '');
+                    
+                    if (empty($name)) {
+                        $errors[] = "Row " . ($index + 2) . ": Name is required";
+                        continue;
+                    }
+                    
+                    if (empty($designation)) {
+                        $errors[] = "Row " . ($index + 2) . ": Designation is required";
+                        continue;
+                    }
+                    
+                    $stmt = $pdo->prepare("
+                        INSERT INTO registered 
+                        (m_id, name, designation, block, phone) 
+                        VALUES (?, ?, ?, ?, ?)
+                    ");
+                    
+                    $stmt->execute([$meetingId, $name, $designation, $block, $phone]);
+                    $processedCount++;
+                } catch (Exception $e) {
+                    $errors[] = "Row " . ($index + 2) . ": " . $e->getMessage();
+                }
+            }
+            
+            // Update files table
+            $updateField = 'registered_url';
+            break;
+            
         case 'attendance':
             // Clear existing attendance for this meeting
             $deleteStmt = $pdo->prepare("DELETE FROM meeting_attendance WHERE meeting_id = ?");
