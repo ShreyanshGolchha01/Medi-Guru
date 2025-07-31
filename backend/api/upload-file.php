@@ -57,6 +57,21 @@ try {
     $storedFileName = "{$fileType}_{$meetingId}_{$userId}_{$timestamp}.{$fileExtension}";
     $filePath = $uploadsDir . $storedFileName;
     
+    // Save the original data to file for backup/reference
+    $backupData = [
+        'originalFileName' => $fileName,
+        'uploadedAt' => date('Y-m-d H:i:s'),
+        'uploadedBy' => $userId,
+        'meetingId' => $meetingId,
+        'fileType' => $fileType,
+        'data' => $data
+    ];
+    
+    // Save as JSON file for data backup
+    $jsonFileName = "{$fileType}_{$meetingId}_{$userId}_{$timestamp}.json";
+    $jsonFilePath = $uploadsDir . $jsonFileName;
+    file_put_contents($jsonFilePath, json_encode($backupData, JSON_PRETTY_PRINT));
+    
     $processedCount = 0;
     $errors = [];
     
@@ -251,7 +266,7 @@ try {
             break;
     }
     
-    // Update files table with file path
+    // Update files table with JSON file path
     $fileStmt = $pdo->prepare("
         INSERT INTO files (m_id, {$updateField}, created_at) 
         VALUES (?, ?, NOW())
@@ -259,7 +274,7 @@ try {
         {$updateField} = VALUES({$updateField}), 
         created_at = NOW()
     ");
-    $fileStmt->execute([$meetingId, $storedFileName]);
+    $fileStmt->execute([$meetingId, $jsonFileName]);
     
     $pdo->commit();
     
@@ -270,6 +285,8 @@ try {
         'processed_count' => $processedCount,
         'total_count' => count($data),
         'file_name' => $fileName,
+        'saved_file' => $jsonFileName,
+        'file_path' => $jsonFilePath,
         'errors' => $errors
     ];
     
