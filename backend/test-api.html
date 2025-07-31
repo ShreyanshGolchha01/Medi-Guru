@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Create Meeting API</title>
+</head>
+<body>
+    <h1>Test Create Meeting API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NTQyNDMyMDB9'; // Mock token
+            
+            const payload = {
+                name: "Test Meeting",
+                date: "2025-08-02",
+                time: "10:00",
+                topic: "This is a test meeting topic for API testing",
+                hosters: "Dr. Test"
+            };
+
+            try {
+                console.log('Sending payload:', payload);
+                
+                const response = await fetch('http://localhost/mediguru/api/create-meeting.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                document.getElementById('result').innerHTML = 
+                    '<h3>Response:</h3><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 
+                    '<h3>Error:</h3><pre>' + error.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

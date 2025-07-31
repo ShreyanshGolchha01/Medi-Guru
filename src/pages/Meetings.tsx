@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import serverUrl from '../services/server';
+import * as XLSX from 'xlsx';
 import {
   Calendar,
   Clock,
@@ -54,10 +56,106 @@ const Meetings: React.FC = () => {
   // TODO: Replace with API calls
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadStatuses, setUploadStatuses] = useState<{[key: string]: UploadStatus}>({});
+
+  // Fetch meetings from API
+  const fetchMeetings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const authToken = localStorage.getItem('auth_token');
+      
+      if (!authToken) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${serverUrl}meetings.php`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.meetings) {
+          // Transform API data to match frontend interface
+          const transformedMeetings = data.meetings.map((meeting: any) => ({
+            id: meeting.id.toString(),
+            title: meeting.name,
+            date: meeting.date,
+            time: meeting.time,
+            duration: meeting.duration || '2 hours',
+            location: meeting.location || 'Training Hall',
+            attendees: meeting.attendees || 0,
+            maxAttendees: meeting.maxAttendees || 50,
+            description: meeting.topic,
+            status: meeting.status,
+            category: meeting.category || 'Medical Training',
+            instructor: meeting.hosters
+          }));
+          setMeetings(transformedMeetings);
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to fetch meetings');
+      }
+    } catch (error) {
+      console.error('Error fetching meetings:', error);
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load meetings on component mount
+  useEffect(() => {
+    fetchMeetings();
+  }, []);
+
+  // Fetch upload status for a specific meeting
+  const fetchUploadStatus = async (meetingId: string) => {
+    try {
+      const authToken = localStorage.getItem('auth_token');
+      if (!authToken) return;
+
+      const response = await fetch(`${serverUrl}upload-status.php?meetingId=${meetingId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUploadStatuses(prev => ({
+            ...prev,
+            [meetingId]: data.upload_status
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching upload status:', error);
+    }
+  };
 
   // TODO: Replace with actual API call to get upload status
   const getUploadStatus = (meetingId: string): UploadStatus => {
-    // This will be replaced with API call
+    // Check if we have cached status
+    if (uploadStatuses[meetingId]) {
+      return uploadStatuses[meetingId];
+    }
+    
+    // Fetch status if not cached
+    fetchUploadStatus(meetingId);
+    
+    // Return default status while loading
     return { preTest: 'not-required', attendance: 'pending', postTest: 'not-required' };
   };
 
@@ -87,28 +185,72 @@ const Meetings: React.FC = () => {
     setUploading(true);
     
     try {
-      // TODO: Replace with actual API call
-      // const formData = new FormData();
-      // formData.append('file', file);
-      // formData.append('meetingId', selectedMeeting.id);
-      // formData.append('type', type);
-      // const response = await fetch('/api/upload', { method: 'POST', body: formData });
+      // Parse Excel/CSV file
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
       
-      // Simulate upload for now
-      setTimeout(() => {
-        setUploading(false);
-        // Clear only the specific file after upload
+      if (!jsonData || jsonData.length === 0) {
+        throw new Error('File is empty or has no valid data');
+      }
+      
+      console.log('Parsed Excel data:', jsonData);
+      
+      // Send parsed data to backend
+      const authToken = localStorage.getItem('auth_token');
+      if (!authToken) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      
+      const response = await fetch(`${serverUrl}upload-file.php`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          meetingId: selectedMeeting.id,
+          type: type,
+          data: jsonData,
+          fileName: file.name
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        // Clear file after successful upload
         setUploadFiles(prev => ({
           ...prev,
           [type]: null
         }));
-        setUploadType(null);
-        alert(`${type.charAt(0).toUpperCase() + type.slice(1)} file uploaded successfully!`);
-      }, 2000);
+        
+        // Refresh upload status for this meeting
+        await fetchUploadStatus(selectedMeeting.id);
+        
+        // Show success message with details
+        let message = `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!\n`;
+        message += `Processed: ${result.processed_count}/${result.total_count} records`;
+        
+        if (result.errors && result.errors.length > 0) {
+          message += `\n\nWarnings:\n${result.errors.slice(0, 5).join('\n')}`;
+          if (result.errors.length > 5) {
+            message += `\n... and ${result.errors.length - 5} more errors`;
+          }
+        }
+        
+        alert(message);
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
     } catch (error) {
+      console.error('Upload error:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
       setUploading(false);
       setUploadType(null);
-      alert('Upload failed. Please try again.');
     }
   };
 
@@ -241,7 +383,7 @@ const Meetings: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <strong style={{ color: 'var(--text-primary)' }}>Instructor:</strong>
+                      <strong style={{ color: 'var(--text-primary)' }}>Hosted By:</strong>
                       <div style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
                         {selectedMeeting.instructor}
                       </div>
@@ -760,6 +902,30 @@ const Meetings: React.FC = () => {
           }}>
             <Calendar size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
             <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Loading meetings...</h3>
+          </div>
+        ) : error ? (
+          <div style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-2xl)',
+            color: 'var(--text-secondary)'
+          }}>
+            <AlertCircle size={48} style={{ color: 'var(--error-500)', marginBottom: 'var(--spacing-md)' }} />
+            <h3 style={{ margin: '0 0 var(--spacing-sm) 0', color: 'var(--error-600)' }}>Error Loading Meetings</h3>
+            <p style={{ margin: '0 0 var(--spacing-md) 0' }}>{error}</p>
+            <button
+              onClick={fetchMeetings}
+              style={{
+                padding: 'var(--spacing-sm) var(--spacing-md)',
+                background: 'var(--primary-600)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+                fontSize: 'var(--font-sm)'
+              }}
+            >
+              Try Again
+            </button>
           </div>
         ) : getFilteredAndSortedMeetings().length > 0 ? (
           getFilteredAndSortedMeetings().map((meeting) => (

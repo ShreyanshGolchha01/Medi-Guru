@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -12,6 +12,8 @@ import {
   Search,
   BarChart3
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import serverUrl from '../services/server';
 
 interface Meeting {
   id: string;
@@ -53,50 +55,185 @@ const MeetingStatistics: React.FC = () => {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [activeView, setActiveView] = useState<StatisticsView>('overview');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // TODO: Fetch meetings data from API
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(false);
+  const [meetingAttendance, setMeetingAttendance] = useState<{[key: string]: number}>({});
+  const [statisticsData, setStatisticsData] = useState<{
+    pretest: any[];
+    posttest: any[];
+    attendance: any[];
+  }>({
+    pretest: [],
+    posttest: [],
+    attendance: []
+  });
+  const [statisticsLoading, setStatisticsLoading] = useState(false);
+  const { user } = useAuth();
 
-  // TODO: Implement API call to fetch meetings
-  // useEffect(() => {
-  //   const fetchMeetings = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const response = await fetch('/api/meetings/statistics');
-  //       const data = await response.json();
-  //       setMeetings(data);
-  //     } catch (error) {
-  //       console.error('Error fetching meetings:', error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchMeetings();
-  // }, []);
+  // Fetch meetings from API
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${serverUrl}meetings.php`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Meetings API response:', data);
+          if (data.meetings && Array.isArray(data.meetings)) {
+            setMeetings(data.meetings);
+            console.log('Meetings set:', data.meetings);
+            
+            // Fetch attendance count for each meeting
+            const attendanceMap: {[key: string]: number} = {};
+            for (const meeting of data.meetings) {
+              try {
+                const attendanceResponse = await fetch(`${serverUrl}meeting-statistics.php?meetingId=${meeting.id}&type=attendance`, {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                
+                if (attendanceResponse.ok) {
+                  const attendanceData = await attendanceResponse.json();
+                  const actualAttendees = attendanceData.data ? attendanceData.data.length : 0;
+                  attendanceMap[meeting.id] = actualAttendees;
+                  console.log(`Meeting ${meeting.id}: ${actualAttendees} actual attendees`);
+                } else {
+                  attendanceMap[meeting.id] = 0;
+                }
+              } catch (error) {
+                console.error(`Error fetching attendance for meeting ${meeting.id}:`, error);
+                attendanceMap[meeting.id] = 0;
+              }
+            }
+            setMeetingAttendance(attendanceMap);
+          } else {
+            console.log('No meetings found or invalid format');
+            setMeetings([]);
+          }
+        } else {
+          console.error('Failed to fetch meetings:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+        }
+      } catch (error) {
+        console.error('Error fetching meetings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMeetings();
+  }, []);
 
-  // TODO: Implement API call to fetch pre-test data
+  // Fetch statistics data when a meeting is selected
+  useEffect(() => {
+    if (selectedMeeting) {
+      fetchAllStatistics(selectedMeeting.id);
+    }
+  }, [selectedMeeting]);
+
+  const fetchAllStatistics = async (meetingId: string) => {
+    setStatisticsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch all three types of data in parallel
+      const [pretestResponse, posttestResponse, attendanceResponse] = await Promise.all([
+        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=pretest`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }),
+        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=posttest`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }),
+        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=attendance`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      ]);
+
+      const pretestData = pretestResponse.ok ? await pretestResponse.json() : { data: [] };
+      const posttestData = posttestResponse.ok ? await posttestResponse.json() : { data: [] };
+      const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : { data: [] };
+
+      console.log('Statistics API responses:', {
+        pretest: pretestData,
+        posttest: posttestData,
+        attendance: attendanceData
+      });
+
+      setStatisticsData({
+        pretest: pretestData.data || [],
+        posttest: posttestData.data || [],
+        attendance: attendanceData.data || []
+      });
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+    } finally {
+      setStatisticsLoading(false);
+    }
+  };
+
+  // Update the get data functions to use actual data
   const getPreTestData = (meetingId: string): ParticipantScore[] => {
-    // TODO: Replace with actual API call
-    // const response = await fetch(`/api/meetings/${meetingId}/pretest`);
-    // return await response.json();
-    return [];
+    if (!statisticsData.pretest || !Array.isArray(statisticsData.pretest)) {
+      return [];
+    }
+    return statisticsData.pretest.map((item, index) => ({
+      id: `pretest-${index}`,
+      name: item.name || 'Unknown',
+      department: item.department || 'Unknown',
+      score: parseInt(item.score) || 0,
+      totalQuestions: parseInt(item.total_marks) || 0,
+      timeTaken: '00:00', // API doesn't provide this yet
+      status: 'completed' as const
+    }));
   };
 
-  // TODO: Implement API call to fetch post-test data
   const getPostTestData = (meetingId: string): ParticipantScore[] => {
-    // TODO: Replace with actual API call
-    // const response = await fetch(`/api/meetings/${meetingId}/posttest`);
-    // return await response.json();
-    return [];
+    if (!statisticsData.posttest || !Array.isArray(statisticsData.posttest)) {
+      return [];
+    }
+    return statisticsData.posttest.map((item, index) => ({
+      id: `posttest-${index}`,
+      name: item.name || 'Unknown',
+      department: item.department || 'Unknown',
+      score: parseInt(item.score) || 0,
+      totalQuestions: parseInt(item.total_marks) || 0,
+      timeTaken: '00:00', // API doesn't provide this yet
+      status: 'completed' as const
+    }));
   };
 
-  // TODO: Implement API call to fetch attendance data
   const getAttendanceData = (meetingId: string): AttendanceRecord[] => {
-    // TODO: Replace with actual API call
-    // const response = await fetch(`/api/meetings/${meetingId}/attendance`);
-    // return await response.json();
-    return [];
+    if (!statisticsData.attendance || !Array.isArray(statisticsData.attendance)) {
+      return [];
+    }
+    return statisticsData.attendance.map((item, index) => ({
+      id: `attendance-${index}`,
+      name: item.name || 'Unknown',
+      department: item.department || 'Unknown',
+      loginTime: item.recorded_at ? new Date(item.recorded_at).toLocaleTimeString('en-IN') : '--',
+      logoutTime: '--', // API doesn't provide this yet
+      duration: '--', // API doesn't provide this yet
+      status: 'present' as const
+    }));
   };
 
   const getScoreColor = (score: number, total: number) => {
@@ -107,31 +244,57 @@ const MeetingStatistics: React.FC = () => {
   };
 
   const calculateStats = (data: any[], type: 'score' | 'attendance') => {
+    if (!data || data.length === 0) {
+      return type === 'score' 
+        ? { total: 0, completed: 0, pending: 0, absent: 0, average: '0' }
+        : { total: 0, present: 0, late: 0, absent: 0, attendanceRate: '0' };
+    }
+
     if (type === 'score') {
       const completed = data.filter(item => item.status === 'completed');
       const avgScore = completed.length > 0 
-        ? completed.reduce((sum, item) => sum + (item.score / item.totalQuestions * 100), 0) / completed.length 
+        ? completed.reduce((sum, item) => {
+            const percentage = (item.score / item.totalQuestions * 100);
+            return sum + (isNaN(percentage) ? 0 : percentage);
+          }, 0) / completed.length 
         : 0;
       return {
         total: data.length,
         completed: completed.length,
         pending: data.filter(item => item.status === 'pending').length,
         absent: data.filter(item => item.status === 'absent').length,
-        average: avgScore.toFixed(1)
+        average: isNaN(avgScore) ? '0' : avgScore.toFixed(1)
       };
     } else {
+      const presentCount = data.filter(item => item.status !== 'absent').length;
+      const attendanceRate = data.length > 0 ? (presentCount / data.length) * 100 : 0;
+      
       return {
         total: data.length,
         present: data.filter(item => item.status === 'present').length,
         late: data.filter(item => item.status === 'late').length,
         absent: data.filter(item => item.status === 'absent').length,
-        attendanceRate: ((data.filter(item => item.status !== 'absent').length / data.length) * 100).toFixed(1)
+        attendanceRate: isNaN(attendanceRate) ? '0' : attendanceRate.toFixed(1)
       };
     }
   };
 
   const renderOverview = () => {
     if (!selectedMeeting) return null;
+    
+    if (statisticsLoading) {
+      return (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: 'var(--spacing-2xl)', 
+          color: 'var(--text-secondary)' 
+        }}>
+          <BarChart3 size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
+          <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Loading statistics...</h3>
+          <p style={{ margin: 0 }}>Please wait while we fetch the data.</p>
+        </div>
+      );
+    }
     
     const preTestData = getPreTestData(selectedMeeting.id);
     const postTestData = getPostTestData(selectedMeeting.id);
@@ -221,6 +384,22 @@ const MeetingStatistics: React.FC = () => {
   const renderDetailedView = () => {
     if (!selectedMeeting) return null;
 
+    if (statisticsLoading) {
+      return (
+        <div className="card">
+          <div style={{ 
+            textAlign: 'center', 
+            padding: 'var(--spacing-2xl)', 
+            color: 'var(--text-secondary)' 
+          }}>
+            <BarChart3 size={48} style={{ opacity: 0.5, marginBottom: 'var(--spacing-md)' }} />
+            <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Loading {activeView} data...</h3>
+            <p style={{ margin: 0 }}>Please wait while we fetch the information.</p>
+          </div>
+        </div>
+      );
+    }
+
     let data: any[] = [];
     let title = '';
     let columns: string[] = [];
@@ -239,7 +418,7 @@ const MeetingStatistics: React.FC = () => {
       case 'attendance':
         data = getAttendanceData(selectedMeeting.id);
         title = 'Attendance Records';
-        columns = ['Name', 'Department'];
+        columns = ['Name', 'Department', 'Login Time'];
         break;
     }
 
@@ -321,6 +500,11 @@ const MeetingStatistics: React.FC = () => {
                   <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
                     {item.department}
                   </td>
+                  {activeView === 'attendance' && (
+                    <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                      {item.loginTime}
+                    </td>
+                  )}
                   {activeView !== 'attendance' && (
                     <td style={{ padding: 'var(--spacing-md)' }}>
                       <span style={{ 
@@ -412,7 +596,10 @@ const MeetingStatistics: React.FC = () => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                 <Users size={16} />
-                {selectedMeeting.attendees} attendees
+                {meetingAttendance[selectedMeeting.id] !== undefined 
+                            ? `${meetingAttendance[selectedMeeting.id]} attended` 
+                            : `${selectedMeeting.attendees} participants`
+                          }
               </div>
             </div>
           </div>
@@ -499,7 +686,9 @@ const MeetingStatistics: React.FC = () => {
             <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Loading meetings...</h3>
           </div>
         ) : meetings.length > 0 ? (
-          meetings.map((meeting) => (
+          <>
+            {console.log('Rendering meetings:', meetings)}
+            {meetings.map((meeting) => (
             <div 
               key={meeting.id}
               className="card"
@@ -560,7 +749,10 @@ const MeetingStatistics: React.FC = () => {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                           <Users size={20} />
-                          {meeting.attendees} participants
+                          {meetingAttendance[meeting.id] !== undefined 
+                            ? `${meetingAttendance[meeting.id]} attended` 
+                            : `${meeting.attendees} participants`
+                          }
                         </div>
                       </div>
                       <p style={{
@@ -602,7 +794,8 @@ const MeetingStatistics: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))
+          ))}
+          </>
         ) : (
           <div style={{
             textAlign: 'center',

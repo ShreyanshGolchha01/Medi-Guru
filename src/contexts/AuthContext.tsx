@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser, User, UserRole } from '../types';
+import serverUrl from '../services/server';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -48,8 +49,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password?: string, otp?: string) => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/login', {
+      // Call PHP backend API
+      const response = await fetch(`${serverUrl}login.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
       }
 
       const authUser = await response.json();
@@ -70,12 +72,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name: authUser.name,
         email: authUser.email,
         role: authUser.role,
-        department: authUser.department,
-        registrationNumber: authUser.registrationNumber,
+        department: authUser.department || 'General',
+        registrationNumber: authUser.registrationNumber || '',
         joinedDate: authUser.joinedDate,
         lastLogin: authUser.lastLogin,
-        isActive: authUser.isActive,
-        profileImage: authUser.profileImage
+        isActive: authUser.isActive || true,
+        profileImage: authUser.profileImage || null
       }));
       localStorage.setItem('auth_token', authUser.token);
       

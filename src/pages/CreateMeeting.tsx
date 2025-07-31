@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, BookOpen, Save, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import serverUrl from '../services/server';
 
 interface MeetingFormData {
   meetingName: string;
@@ -12,6 +14,7 @@ interface MeetingFormData {
 
 const CreateMeeting: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState<MeetingFormData>({
     meetingName: '',
     meetingDate: '',
@@ -82,18 +85,45 @@ const CreateMeeting: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem('auth_token');
       
-      // In real implementation, this would be an API call
-      console.log('Creating meeting:', formData);
-      
-      // Show success message and redirect
-      alert('Meeting created successfully!');
-      navigate('/meetings');
+      if (!authToken) {
+        alert('Authentication required. Please log in again.');
+        navigate('/login');
+        return;
+      }
+
+      // API call to create meeting
+      const response = await fetch(`${serverUrl}create-meeting.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          name: formData.meetingName,
+          date: formData.meetingDate,
+          time: formData.meetingTime,
+          topic: formData.meetingTopic,
+          hosters: formData.meetingHost
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Show success message and redirect
+        alert('Meeting created successfully!');
+        navigate('/meetings');
+      } else {
+        // Handle API errors
+        const errorMessage = data.message || 'Failed to create meeting. Please try again.';
+        alert(errorMessage);
+      }
     } catch (error) {
       console.error('Error creating meeting:', error);
-      alert('Failed to create meeting. Please try again.');
+      alert('Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
