@@ -81,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isSidebarOpen }) => {
               padding: '6px'
             }}>
               <img 
-                src="/medigurulogo.png" 
+                src="/medigurulogo.svg" 
                 alt="Medi Guru Logo"
                 style={{
                   width: '50px',
