@@ -55,9 +55,7 @@ interface RegisteredParticipant {
 interface AttendanceRecord {
   id: string;
   name: string;
-  department: string;
   loginTime: string;
-  logoutTime: string;
   duration: string;
   status: 'present' | 'absent' | 'late';
 }
@@ -269,10 +267,8 @@ const MeetingStatistics: React.FC = () => {
     return statisticsData.attendance.map((item, index) => ({
       id: `attendance-${index}`,
       name: item.name || 'Unknown',
-      department: item.department || 'Unknown',
-      loginTime: item.recorded_at ? new Date(item.recorded_at).toLocaleTimeString('en-IN') : '--',
-      logoutTime: '--', // API doesn't provide this yet
-      duration: '--', // API doesn't provide this yet
+      loginTime: item.login_time || '--',
+      duration: item.attended_time || '--',
       status: 'present' as const
     }));
   };
@@ -373,9 +369,7 @@ const MeetingStatistics: React.FC = () => {
         exportData = data.map((item, index) => ({
           'S.No.': index + 1,
           'Name': item.name,
-          'Department': item.department,
           'Login Time': item.loginTime,
-          'Logout Time': item.logoutTime,
           'Duration': item.duration,
           'Status': item.status
         }));
@@ -661,7 +655,7 @@ const MeetingStatistics: React.FC = () => {
       case 'attendance':
         data = getAttendanceData(selectedMeeting.id);
         title = 'Attendance Records';
-        columns = ['Name', 'Department', 'Login Time'];
+        columns = ['Name', 'Login Time', 'Duration'];
         break;
     }
 
@@ -672,6 +666,10 @@ const MeetingStatistics: React.FC = () => {
                (item.designation && item.designation.toLowerCase().includes(searchLower)) ||
                (item.block && item.block.toLowerCase().includes(searchLower)) ||
                (item.phone && item.phone.toLowerCase().includes(searchLower));
+      } else if (activeView === 'attendance') {
+        return item.name.toLowerCase().includes(searchLower) ||
+               (item.loginTime && item.loginTime.toLowerCase().includes(searchLower)) ||
+               (item.duration && item.duration.toLowerCase().includes(searchLower));
       } else {
         return item.name.toLowerCase().includes(searchLower) ||
                item.department.toLowerCase().includes(searchLower);
@@ -754,7 +752,7 @@ const MeetingStatistics: React.FC = () => {
                   <td style={{ padding: 'var(--spacing-md)', fontWeight: '500' }}>
                     {item.name}
                   </td>
-                  {activeView === 'registered' ? (
+                  {activeView === 'registered' && (
                     <>
                       <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
                         {item.designation || item.department}
@@ -766,34 +764,40 @@ const MeetingStatistics: React.FC = () => {
                         {item.phone || 'N/A'}
                       </td>
                     </>
-                  ) : (
-                    <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                      {item.department}
-                    </td>
                   )}
                   {activeView === 'attendance' && (
-                    <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
-                      {item.loginTime}
-                    </td>
+                    <>
+                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        {item.loginTime}
+                      </td>
+                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        {item.duration}
+                      </td>
+                    </>
                   )}
                   {(activeView === 'pretest' || activeView === 'posttest') && (
-                    <td style={{ padding: 'var(--spacing-md)' }}>
-                      <span style={{ 
-                        fontWeight: '600',
-                        color: item.status === 'completed' ? getScoreColor(item.score, item.totalQuestions) : 'var(--text-secondary)'
-                      }}>
-                        {item.status === 'completed' ? `${item.score}/${item.totalQuestions}` : '-'}
-                      </span>
-                      {item.status === 'completed' && (
+                    <>
+                      <td style={{ padding: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+                        {item.department}
+                      </td>
+                      <td style={{ padding: 'var(--spacing-md)' }}>
                         <span style={{ 
-                          marginLeft: 'var(--spacing-xs)', 
-                          fontSize: 'var(--font-sm)', 
-                          color: 'var(--text-secondary)' 
+                          fontWeight: '600',
+                          color: item.status === 'completed' ? getScoreColor(item.score, item.totalQuestions) : 'var(--text-secondary)'
                         }}>
-                          ({((item.score / item.totalQuestions) * 100).toFixed(0)}%)
+                          {item.status === 'completed' ? `${item.score}/${item.totalQuestions}` : '-'}
                         </span>
-                      )}
-                    </td>
+                        {item.status === 'completed' && (
+                          <span style={{ 
+                            marginLeft: 'var(--spacing-xs)', 
+                            fontSize: 'var(--font-sm)', 
+                            color: 'var(--text-secondary)' 
+                          }}>
+                            ({((item.score / item.totalQuestions) * 100).toFixed(0)}%)
+                          </span>
+                        )}
+                      </td>
+                    </>
                   )}
                 </tr>
               ))}

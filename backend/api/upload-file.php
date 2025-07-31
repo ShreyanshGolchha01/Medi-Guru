@@ -109,20 +109,31 @@ try {
             foreach ($data as $index => $row) {
                 try {
                     $name = trim($row['Name'] ?? $row['name'] ?? $row['participant_name'] ?? '');
-                    $department = trim($row['Department'] ?? $row['department'] ?? '');
+                    $loginTime = trim($row['Login Time'] ?? $row['login_time'] ?? $row['Login_Time'] ?? '');
+                    $attendedTime = trim($row['Duration'] ?? $row['duration'] ?? $row['attended_time'] ?? $row['Attended_Time'] ?? '');
                     
                     if (empty($name)) {
                         $errors[] = "Row " . ($index + 2) . ": Name is required";
                         continue;
                     }
                     
+                    if (empty($loginTime)) {
+                        $errors[] = "Row " . ($index + 2) . ": Login Time is required";
+                        continue;
+                    }
+                    
+                    if (empty($attendedTime)) {
+                        $errors[] = "Row " . ($index + 2) . ": Duration is required";
+                        continue;
+                    }
+                    
                     $stmt = $pdo->prepare("
                         INSERT INTO meeting_attendance 
-                        (meeting_id, participant_name, department, uploaded_by, recorded_at) 
-                        VALUES (?, ?, ?, ?, NOW())
+                        (meeting_id, participant_name, login_time, attended_time, uploaded_by, recorded_at) 
+                        VALUES (?, ?, ?, ?, ?, NOW())
                     ");
                     
-                    $stmt->execute([$meetingId, $name, $department, $userId]);
+                    $stmt->execute([$meetingId, $name, $loginTime, $attendedTime, $userId]);
                     $processedCount++;
                 } catch (Exception $e) {
                     $errors[] = "Row " . ($index + 2) . ": " . $e->getMessage();

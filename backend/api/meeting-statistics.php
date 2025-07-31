@@ -152,7 +152,8 @@ try {
             $stmt = $pdo->prepare("
                 SELECT 
                     participant_name as name,
-                    department,
+                    login_time,
+                    attended_time,
                     recorded_at
                 FROM meeting_attendance 
                 WHERE meeting_id = ?
