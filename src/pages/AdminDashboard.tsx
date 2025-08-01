@@ -27,7 +27,7 @@ const AdminDashboard: React.FC = () => {
         const token = localStorage.getItem('token');
         
         // Fetch meetings data
-        const meetingsResponse = await fetch(`${serverUrl}meetings.php`, {
+        const meetingsResponse = await fetch(`${serverUrl}medi_meetings.php`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -48,7 +48,7 @@ const AdminDashboard: React.FC = () => {
           // Get attendance data for each meeting
           for (const meeting of meetings) {
             try {
-              const attendanceResponse = await fetch(`${serverUrl}meeting-statistics.php?meetingId=${meeting.id}&type=attendance`, {
+              const attendanceResponse = await fetch(`${serverUrl}medi_meeting-statistics.php?meetingId=${meeting.id}&type=attendance`, {
                 headers: {
                   'Authorization': `Bearer ${token}`,
                   'Content-Type': 'application/json'

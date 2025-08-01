@@ -1,6 +1,6 @@
 # Medi Guru - Virtual Medical Training Portal
 
-A comprehensive web platform for virtual medical training sessions, designed for Government Medical Officers of Raipur, Chhattisgarh.
+A comprehensive web platform for virtual medical training sessions, designed for Government Medical Officers in Raipur, Chhattisgarh.
 
 ## 🏥 Project Overview
 
@@ -17,198 +17,277 @@ Medi Guru is a centralized web platform that enables weekly virtual medical trai
 - **Experts:** Provide content, upload materials, conduct sessions
 - **Monitoring Team:** View progress reports and analytics dashboards
 
-### 📚 Learning Management
-- **Session Management:** Weekly session scheduling with expert-led training
-- **Live Integration:** Direct links to Zoom/Google Meet/Webex sessions
-- **Resource Library:** Video recordings, PDFs, case studies, guidelines
-- **Assessment System:** Pre/post-session quizzes with auto-grading
-- **Certification:** Automatic certificate generation upon completion
+### 📚 Training Management
+- **Session Scheduling:** Create and manage virtual training sessions
+- **File Upload System:** Excel-based data upload for:
+  - Registered participants (Name, Designation, Block, Phone)
+  - Attendance records (Login time, Duration)
+  - Pre-test results (Scores and departments)
+  - Post-test results (Performance tracking)
+- **Live Integration:** Direct session management and monitoring
+- **Statistics Dashboard:** Comprehensive analytics and reporting
 
-### 📊 Monitoring & Analytics
-- **Attendance Tracking:** Automated session attendance logging
-- **Performance Analytics:** Quiz scores, participation rates, progress tracking
-- **Feedback System:** Anonymous session feedback and suggestions
-- **Reporting Dashboard:** Comprehensive reports for administrators
+### 📊 Data Management & Analytics
+- **Excel File Processing:** Automated parsing and validation of Excel uploads
+- **Real-time Statistics:** Attendance rates, test scores, participation analytics
+- **Export Functionality:** Download reports in Excel format with meeting details
+- **Search & Filter:** Advanced filtering across all data types
+- **Backup System:** Automatic JSON backup of all uploaded data
+
+### 🔐 Authentication & Security
+- **Role-based Access Control:** JWT-based authentication system
+- **Secure File Storage:** Server-side file validation and storage
+- **Token Management:** Persistent localStorage-based session management
+- **CORS Protection:** Secure cross-origin resource sharing
 
 ## 🛠️ Technology Stack
 
 ### Frontend
 - **Framework:** React 18 + TypeScript
-- **Build Tool:** Vite
+- **Build Tool:** Vite (Fast development and optimized builds)
 - **Routing:** React Router DOM v6
-- **Icons:** Lucide React
-- **Styling:** Custom CSS with CSS Variables (No Tailwind)
+- **Icons:** Lucide React (Modern icon library)
+- **Excel Processing:** XLSX library for file handling
+- **Styling:** Custom CSS with CSS Variables (No external frameworks)
+
+### Backend
+- **Language:** PHP 8.x
+- **Database:** MySQL/MariaDB
+- **Authentication:** JWT (JSON Web Tokens)
+- **File Processing:** Server-side Excel parsing and validation
+- **API Architecture:** RESTful API design
+
+### Database Schema
+```sql
+-- Main tables
+meetings (id, title, date, time, category, instructor, status)
+registered (m_id, name, designation, block, phone)
+meeting_attendance (meeting_id, participant_name, login_time, attended_time)
+pretest_results (meeting_id, name, department, score, total_marks)
+posttest_results (meeting_id, name, department, score, total_marks)
+files (m_id, registered_url, attend_url, pre_url, post_url)
+```
 
 ### Design System
 - **Theme:** Government portal with professional appearance
 - **Colors:** Linear gradient theme `linear-gradient(135deg, #4A2C2A 0%, #333333 100%)`
-- **Layout:** Responsive design with sidebar navigation
-- **Components:** Reusable component library
-
-### Development Features
-- **Authentication:** Role-based access control with JWT
-- **State Management:** React Hooks and Context API
-- **Mock Data:** Comprehensive mock data for development
-- **Form Validation:** Built-in form validation system
-- **Responsive Design:** Mobile-first responsive layout
+- **Layout:** Responsive design with clean, accessible interface
+- **Typography:** Professional font hierarchy for government applications
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn package manager
+- **Frontend:** Node.js (v18+), npm/yarn
+- **Backend:** PHP 8.x, MySQL/MariaDB, Apache/Nginx
+- **Development:** XAMPP/WAMP (for local development)
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd medi-guru-2
-   ```
+#### Frontend Setup
+```bash
+# Clone the repository
+git clone https://github.com/ShreyanshGolchha01/Medi-Guru.git
+cd medi-guru-2
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
+# Start development server
+npm run dev
+```
 
-4. **Build for production**
-   ```bash
-   npm run build
-   ```
+#### Backend Setup
+```bash
+# Place backend files in your web server directory
+# Example: C:\xampp\htdocs\mediguru\
 
-5. **Preview production build**
-   ```bash
-   npm run preview
-   ```
+# Configure database connection in backend/api/database.php
+# Update CORS settings for your domain
 
-## 🔐 Demo Accounts
+# Import database schema (SQL file provided)
+# Ensure uploads/ directory has write permissions
+```
 
-For testing purposes, use these demo accounts:
+### Environment Configuration
 
-| Role | Email | Access Level |
-|------|-------|-------------|
-| **Medical Officer** | rajesh.kumar@raipur.gov.in | Session access, quizzes, certificates |
-| **Admin** | amit.verma@cmho.raipur.gov.in | Full system management |
-| **Expert** | sunita.patel@expert.gov.in | Content creation, session management |
-| **Monitoring** | deepak.agrawal@collector.raipur.gov.in | Analytics and reports |
+#### Frontend (.env)
+```env
+VITE_API_URL=http://localhost/mediguru/backend/api/
+VITE_APP_ENV=development
+```
 
-*Note: Use any password or OTP for demo login*
+#### Backend (database.php)
+```php
+$host = 'localhost';
+$dbname = 'mediguru_db';
+$username = 'your_db_user';
+$password = 'your_db_password';
+```
 
-## 📱 Features Overview
+## 📱 Application Features
 
-### 🏠 Dashboard
-- Personalized welcome with user stats
-- Upcoming session schedule
-- Recent activity feed
-- Quick action buttons
-- Performance metrics
+### 🏠 Admin Dashboard
+- **Statistics Overview:** Total meetings, attendees, average attendance
+- **Quick Actions:** Create meeting, view statistics, manage data
+- **Performance Metrics:** Real-time data visualization
 
-### 📅 Session Management
-- Calendar view of training sessions
-- Session details and registration
-- Live session joining
-- Recording access
-- Expert information
+### 📅 Meeting Management
+- **Create Meetings:** Comprehensive form with validation
+- **Session Scheduling:** Date, time, topic, and instructor management
+- **Status Tracking:** Upcoming, ongoing, and completed sessions
 
-### 📖 Learning Resources
-- Downloadable materials (PDFs, documents)
-- Video content library
-- Search and filter functionality
-- Category-wise organization
+### 📊 Statistics & Reporting
+- **Meeting Statistics:** Detailed view for each training session
+- **Data Visualization:** 
+  - Registered participants overview
+  - Attendance tracking with login times
+  - Pre-test and post-test performance analysis
+  - Export capabilities for all data types
 
-### 🧪 Assessment System
-- Pre and post-session quizzes
-- Multiple question types
-- Automatic scoring
-- Progress tracking
-- Performance analytics
+### � File Upload System
+- **Excel File Processing:** Intelligent parsing of various Excel formats
+- **Data Validation:** Real-time validation with error reporting
+- **Multiple File Types:** Support for different data categories
+- **Backup Storage:** Automatic JSON backup of uploaded data
 
-### 🏆 Certification
-- Automatic certificate generation
-- Verification system
-- Download and sharing options
-- Achievement tracking
+### � Advanced Features
+- **Search Functionality:** Global search across participants, times, scores
+- **Export System:** Excel export with meeting information sheets
+- **Error Handling:** Comprehensive error reporting and validation
+- **Responsive Design:** Mobile-friendly interface
 
-### 💬 Feedback System
-- Anonymous session feedback
-- Rating system
-- Suggestion collection
-- Feedback analytics
+## 🧪 API Endpoints
+
+### Authentication
+```
+POST /api/login.php - User authentication
+POST /api/logout.php - User logout
+```
+
+### Meeting Management
+```
+GET /api/meetings.php - Fetch all meetings
+POST /api/create-meeting.php - Create new meeting
+GET /api/meeting-statistics.php - Get meeting statistics
+```
+
+### File Operations
+```
+POST /api/upload-file.php - Upload and process Excel files
+GET /api/upload-status.php - Check upload status
+```
+
+### Data Types Supported
+- **registered:** Participant registration data
+- **attendance:** Login time and duration tracking
+- **pretest:** Pre-training assessment scores
+- **posttest:** Post-training evaluation results
+
+## � File Format Requirements
+
+### Registered Participants Excel Format
+| Name | Designation | Block | Phone |
+|------|-------------|-------|-------|
+| Dr. John Doe | Medical Officer | Block A | 9876543210 |
+
+### Attendance Excel Format
+| Name | Login Time | Duration |
+|------|------------|----------|
+| Dr. John Doe | 10:30 AM | 45 minutes |
+
+### Test Results Excel Format
+| Name | Department | Score | Total Marks |
+|------|------------|-------|-------------|
+| Dr. John Doe | Cardiology | 85 | 100 |
 
 ## 🔧 Development Guidelines
 
 ### Code Standards
-- TypeScript strict mode enabled
-- ESLint and Prettier configured
-- Component-based architecture
-- Functional components with hooks
-- Proper error handling and validation
+- **TypeScript:** Strict mode enabled with proper type definitions
+- **PHP:** PSR-4 autoloading and modern PHP practices
+- **Database:** Prepared statements for security
+- **Error Handling:** Comprehensive try-catch blocks
+- **Validation:** Both client-side and server-side validation
 
-### Styling Guidelines
-- CSS Variables for theming
-- Mobile-first responsive design
-- Professional government portal appearance
-- Consistent spacing and typography
-- Interactive hover effects
-
-### Component Structure
-```
-src/
-├── components/          # Reusable UI components
-├── pages/              # Page components
-├── contexts/           # React contexts
-├── types/              # TypeScript type definitions
-├── data/               # Mock data and API functions
-├── styles/             # Global styles and themes
-└── utils/              # Utility functions
-```
+### Security Features
+- **SQL Injection Protection:** Prepared statements throughout
+- **File Upload Security:** Type validation and sanitization
+- **Authentication:** JWT with expiration handling
+- **CORS Configuration:** Proper cross-origin handling
+- **Input Validation:** Comprehensive data sanitization
 
 ## 🌐 Deployment
 
-### Build Configuration
-The application is configured for easy deployment on:
-- **Vercel** (Recommended for frontend)
-- **Netlify**
-- **AWS S3 + CloudFront**
-- **Traditional web servers**
+### Production Setup
+```bash
+# Build frontend
+npm run build
 
-### Environment Variables
-Create a `.env` file for production configuration:
-```env
-VITE_API_BASE_URL=your_backend_api_url
-VITE_APP_TITLE=Medi Guru Portal
-VITE_ENVIRONMENT=production
+# Deploy to web server
+# Configure production database
+# Update API URLs in frontend
+# Set proper file permissions
 ```
+
+### Server Requirements
+- **PHP:** 8.0+ with PDO, JSON extensions
+- **MySQL:** 5.7+ or MariaDB 10.3+
+- **Web Server:** Apache/Nginx with mod_rewrite
+- **SSL:** HTTPS recommended for production
+
+## 📊 Database Design
+
+### Key Tables
+- **meetings:** Core session information
+- **registered:** Participant registration data
+- **meeting_attendance:** Login tracking with timestamps
+- **pretest_results & posttest_results:** Assessment scores
+- **files:** File upload tracking and references
+
+### Data Relationships
+- Meetings → Participants (1:Many)
+- Meetings → Attendance Records (1:Many) 
+- Meetings → Test Results (1:Many)
+- Files → Meetings (1:1 per file type)
 
 ## 🔮 Future Enhancements
 
 ### Phase 2 Features
-- **Backend Integration:** REST API with database
-- **Real-time Chat:** Live session chat functionality
-- **Mobile App:** React Native mobile application
-- **Advanced Analytics:** AI-powered learning insights
-- **Multi-language Support:** Hindi and English interface
+- **Advanced Analytics:** AI-powered insights and trends
+- **Mobile Application:** React Native mobile app
+- **Real-time Notifications:** Session reminders and updates
+- **Video Integration:** Built-in video conferencing
+- **Certificate Generation:** Automated completion certificates
 
-### Scalability
-- **Multi-district Support:** Expand to other districts in Chhattisgarh
-- **State Integration:** Connect with State Health LMS
-- **Performance Optimization:** Advanced caching and optimization
-- **Offline Support:** Progressive Web App features
+### Scalability Features
+- **Multi-district Support:** Expand across Chhattisgarh
+- **API Rate Limiting:** Enhanced security measures
+- **Caching Layer:** Redis/Memcached integration
+- **Load Balancing:** High-availability setup
 
-## 📞 Support & Contact
+## 🆘 Troubleshooting
 
-**Technical Support:**  
+### Common Issues
+1. **File Upload Errors:** Check directory permissions and file size limits
+2. **Database Connection:** Verify credentials and server availability
+3. **CORS Issues:** Update backend CORS settings for your domain
+4. **Authentication Problems:** Check JWT secret and token expiration
+
+### Debug Mode
+```php
+// Enable in backend for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+```
+
+## 📞 Support & Documentation
+
+**Technical Contact:**  
 CMHO Office, Raipur  
 Health & Family Welfare Department  
 Government of Chhattisgarh
 
-**Development Team:**  
-For technical queries and feature requests, please contact the development team.
+**Repository:** [GitHub - Medi-Guru](https://github.com/ShreyanshGolchha01/Medi-Guru)
 
 ## 📄 License
 
@@ -216,24 +295,8 @@ This project is developed for the Government of Chhattisgarh, Health & Family We
 
 ---
 
-**Medi Guru Portal v1.0**  
+**Medi Guru Portal v2.0**  
 *Empowering Medical Excellence Through Virtual Training*
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+
+Built with ❤️ for healthcare professionals in Chhattisgarh
 ```

@@ -76,7 +76,7 @@ const Meetings: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${serverUrl}meetings.php`, {
+      const response = await fetch(`${serverUrl}medi_meetings.php`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -127,7 +127,7 @@ const Meetings: React.FC = () => {
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) return;
 
-      const response = await fetch(`${serverUrl}upload-status.php?meetingId=${meetingId}`, {
+      const response = await fetch(`${serverUrl}medi_upload-status.php?meetingId=${meetingId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -213,7 +213,7 @@ const Meetings: React.FC = () => {
         throw new Error('Authentication required. Please log in again.');
       }
       
-      const response = await fetch(`${serverUrl}upload-file.php`, {
+      const response = await fetch(`${serverUrl}medi_upload-file.php`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,

@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       // Call PHP backend API
-      const response = await fetch(`${serverUrl}login.php`, {
+      const response = await fetch(`${serverUrl}medi_login.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

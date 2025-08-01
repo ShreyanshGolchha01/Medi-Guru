@@ -359,7 +359,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'var(--text-muted)',
             lineHeight: 1.4
           }}>
-            Medi Guru Portal v1.0<br />
+            Medi Guru Portal v1.2<br />
             SSIPMT, Raipur<br />
           </p>
         </div>

@@ -87,7 +87,7 @@ const MeetingStatistics: React.FC = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${serverUrl}meetings.php`, {
+        const response = await fetch(`${serverUrl}medi_meetings.php`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -105,7 +105,7 @@ const MeetingStatistics: React.FC = () => {
             const attendanceMap: {[key: string]: number} = {};
             for (const meeting of data.meetings) {
               try {
-                const attendanceResponse = await fetch(`${serverUrl}meeting-statistics.php?meetingId=${meeting.id}&type=attendance`, {
+                const attendanceResponse = await fetch(`${serverUrl}medi_meeting-statistics.php?meetingId=${meeting.id}&type=attendance`, {
                   headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -159,25 +159,25 @@ const MeetingStatistics: React.FC = () => {
       
       // Fetch all four types of data in parallel
       const [registeredResponse, pretestResponse, posttestResponse, attendanceResponse] = await Promise.all([
-        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=registered`, {
+        fetch(`${serverUrl}medi_meeting-statistics.php?meetingId=${meetingId}&type=registered`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
-        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=pretest`, {
+        fetch(`${serverUrl}medi_meeting-statistics.php?meetingId=${meetingId}&type=pretest`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
-        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=posttest`, {
+        fetch(`${serverUrl}medi_meeting-statistics.php?meetingId=${meetingId}&type=posttest`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
-        fetch(`${serverUrl}meeting-statistics.php?meetingId=${meetingId}&type=attendance`, {
+        fetch(`${serverUrl}medi_meeting-statistics.php?meetingId=${meetingId}&type=attendance`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

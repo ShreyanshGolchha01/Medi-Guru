@@ -93,7 +93,7 @@ const CreateMeeting: React.FC = () => {
       }
 
       // API call to create meeting
-      const response = await fetch(`${serverUrl}create-meeting.php`, {
+      const response = await fetch(`${serverUrl}medi_create-meeting.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
